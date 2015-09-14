@@ -1,0 +1,75 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+              android:orientation="vertical"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                tools:context="au.com.psilisoft.www.rosterbuilder.RosterSegmentActivity">
+
+    <TextView
+        android:id="@+id/text_day_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Day"/>
+    <TextView
+        android:id="@+id/text_day"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Thursday 13/08/2015"
+        android:textSize="16sp"/>
+    <Button
+        android:id="@+id/button_select_days"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Days"
+        android:visibility="gone"/>
+
+    <CheckBox
+        android:id="@+id/check_box_is_shift"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Is Shift"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start Time"/>
+    <TimePicker
+        android:id="@+id/picker_start_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Finish Time"/>
+    <TimePicker
+        android:id="@+id/picker_finish_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Required Abilities:"/>
+    <Button
+        android:id="@+id/button_shift_abilities"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Abilities"/>
+
+    <ListView
+        android:id="@+id/list_view_abilities"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/button_create"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create"
+        android:visibility="gone"/>
+
+</LinearLayout>

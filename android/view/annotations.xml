@@ -1,0 +1,5 @@
+<root>
+  <item name='android.view.View android.view.ViewParent getParent()'>
+    <annotation name='org.jetbrains.annotations.Nullable'/>
+  </item>
+</root>

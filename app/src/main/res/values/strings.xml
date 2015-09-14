@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">RosterBuilder</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_staff">StaffActivity</string>
+
+    <string name="edit_enter_name">Enter a name</string>
+    <string name="title_activity_abilities">Abilities</string>
+
+    <string name="title_activity_staff_list">Staff</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_staff_abilities">StaffAbilitiesActivity</string>
+    <string name="title_activity_staff_availability">StaffAvailabilityActivity</string>
+    <string name="title_activity_staff_unavailability">StaffUnavailabilityActivity</string>
+    <string name="title_activity_roster_list">RosterListActivity</string>
+    <string name="title_activity_roster">RosterActivity</string>
+    <string name="title_activity_shift_list">ShiftListActivity</string>
+    <string name="title_activity_shift">ShiftActivity</string>
+    <string name="title_activity_team_requirement">TeamRequirementActivity</string>
+    <string name="title_activity_shift_ability">ShiftAbilityActivity</string>
+    <array name="week_days">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </array>
+    <string name="title_activity_create_roster_segment">CreateRosterSegmentActivity</string>
+    <string name="title_activity_create_availability">CreateAvailabilityActivity</string>
+    <string name="title_activity_staff_master">StaffMasterActivity</string>
+
+    <string name="label_staff_name">Staff Name</string>
+    <string name="label_shifts_required">Shifts Required Per Week: </string>
+    <string name="label_hours_required">Hours Required Per Week: </string>
+    <string name="label_minimum">Minimum: </string>
+    <string name="label_maximum">Maximum: </string>
+    <string name="label_abilities">Abilities: </string>
+    <string name="label_edit_abilities">Edit Abilities</string>
+    <string name="label_availability">Availability</string>
+    <string name="label_dates_unavailable">Dates Unavailable</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
