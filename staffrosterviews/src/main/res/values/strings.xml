@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">StaffRosterViews</string>
+    <string name="staff_name">Name:</string>
+    <string name="label_staff_name">Name:</string>
+    <string name="label_shifts_required">Shifts Required Per Week:</string>
+    <string name="label_minimum">Minimum:</string>
+    <string name="label_maximum">Maximum:</string>
+    <string name="label_hours_required">Hours Required Per Week:</string>
+    <string name="label_abilities">Abilities:</string>
+    <string name="label_edit_abilities">Edit Abilities</string>
+    <string name="label_availability">Availability</string>
+    <string name="label_dates_unavailable">Dates Unavailable</string>
 </resources>
