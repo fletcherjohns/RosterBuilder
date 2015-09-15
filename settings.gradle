@@ -1,1 +1,1 @@
-include ':app', ':staffrosterviews'
+include ':app', ':staffrosterviews', ':viewtester'

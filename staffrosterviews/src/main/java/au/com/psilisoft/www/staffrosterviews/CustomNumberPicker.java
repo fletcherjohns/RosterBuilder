@@ -9,6 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Adapter;
@@ -25,6 +26,7 @@ public class CustomNumberPicker extends View {
     private int mMin;
     private int mMax;
     private int mIncrement;
+    private int mCount;
     private double mScrollPosition = 0;
 
     private int mWidth;
@@ -49,6 +51,7 @@ public class CustomNumberPicker extends View {
         } finally {
             a.recycle();
         }
+        mCount = (mMax - mMin) / mIncrement;
         init();
     }
 
@@ -57,7 +60,6 @@ public class CustomNumberPicker extends View {
         mPaint = new Paint();
         mPaint.setColor(Color.BLACK);
         mPaint.setTextAlign(Paint.Align.CENTER);
-        mPaint.setTextSize(12f);
         mCamera = new Camera();
         mMatrix = new Matrix();
     }
@@ -68,34 +70,64 @@ public class CustomNumberPicker extends View {
         mWidth = r - l;
         mHeight = b - t;
         mBitmapEdge = (int) (mHeight / Math.sqrt(4 + 2 * Math.sqrt(2)));
+        mPaint.setTextSize(mBitmapEdge / 2);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        int firstPosition = (int) ((mScrollPosition - 2) * mIncrement);
-        int lastPosition = (int) ((mScrollPosition + 2) * mIncrement);
-        float distanceFromCentre;
-        String number;
+        int position;
+        int firstPosition = (int) Math.round(mScrollPosition - 2);
+        int lastPosition = (int) Math.round(mScrollPosition + 2);
+        double distanceFromCentre;
 
         for (int i = firstPosition; i <= lastPosition; i += mIncrement) {
-            if (i >= 0) {
-                number = String.valueOf(mMin + (i * mIncrement));
-                distanceFromCentre = Math.round(mScrollPosition - i);
+            distanceFromCentre = mScrollPosition - i;
 
-                Bitmap b = getBitmap(i);
-
-            }
+            Bitmap b = getBitmap(i % mCount);
+            setMatrix(i);
+            canvas.drawBitmap(b, mMatrix, null);
         }
     }
 
 
     private Bitmap getBitmap(int position) {
 
-        Bitmap b = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
+        Bitmap b = Bitmap.createBitmap(mBitmapEdge, mBitmapEdge, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
-        c.drawText(String.valueOf(mMin + (position * mIncrement)), mBitmapEdge, mBitmapEdge, mPaint);
+        c.drawText(String.valueOf(mMin + (position * mIncrement)), mBitmapEdge / 2, mBitmapEdge / 2, mPaint);
         return b;
+    }
+
+    private void setMatrix(int position) {
+
+        RectF rect = getChildDimensions();
+
+        float rotation = (float) ((mScrollPosition - position) * Math.PI / 4);
+        int radius = mHeight / 2;
+        mCamera.save();
+        mCamera.translate(0, 0, radius);
+        mCamera.rotateX(rotation);
+        mCamera.translate(0, 0, -radius);
+        mCamera.getMatrix(mMatrix);
+        mCamera.restore();
+
+        mMatrix.preTranslate(-mBitmapEdge / 2, -mBitmapEdge / 2);
+        mMatrix.postTranslate(mBitmapEdge / 2 + rect.left, mBitmapEdge / 2 + rect.top);
+    }
+
+    private RectF getChildDimensions() {
+
+        int halfFrameWidth = mWidth / 2;
+        int halfFrameHeight = mHeight / 2;
+        int halfChildWidth = mBitmapEdge / 2;
+        int halfChildHeight = mBitmapEdge / 2;
+
+        // Centre the view horizontally and vertically
+        int left = halfFrameWidth - halfChildWidth;
+        int top = halfFrameHeight - halfChildHeight;
+
+        return new RectF(left, top, left + mBitmapEdge, top + mBitmapEdge);
     }
 }

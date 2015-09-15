@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/RosterBuilder.iml" filepath="$PROJECT_DIR$/RosterBuilder.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/staffrosterviews/staffrosterviews.iml" filepath="$PROJECT_DIR$/staffrosterviews/staffrosterviews.iml" />
+      <module fileurl="file://$PROJECT_DIR$/viewtester/viewtester.iml" filepath="$PROJECT_DIR$/viewtester/viewtester.iml" />
     </modules>
   </component>
 </project>
