@@ -3,7 +3,6 @@ package au.com.psilisoft.www.staffrosterviews;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,11 +11,8 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.Adapter;
 
-import java.util.Deque;
-import java.util.NoSuchElementException;
-import java.util.Queue;
+import java.util.Random;
 
 /**
  * Created by Fletcher on 14/09/2015.
@@ -33,7 +29,8 @@ public class CustomNumberPicker extends View {
     private int mHeight;
     private int mBitmapEdge;
 
-    private Paint mPaint;
+    private Paint mTextPaint;
+    private Paint mBitmapPaint;
     private Camera mCamera;
     private Matrix mMatrix;
 
@@ -57,9 +54,12 @@ public class CustomNumberPicker extends View {
 
     private void init() {
 
-        mPaint = new Paint();
-        mPaint.setColor(Color.BLACK);
-        mPaint.setTextAlign(Paint.Align.CENTER);
+        mTextPaint = new Paint();
+        mTextPaint.setColor(Color.BLACK);
+        mTextPaint.setTextAlign(Paint.Align.CENTER);
+        mBitmapPaint = new Paint();
+        mBitmapPaint.setFilterBitmap(true);
+        mBitmapPaint.setAntiAlias(true);
         mCamera = new Camera();
         mMatrix = new Matrix();
     }
@@ -70,33 +70,41 @@ public class CustomNumberPicker extends View {
         mWidth = r - l;
         mHeight = b - t;
         mBitmapEdge = (int) (mHeight / Math.sqrt(4 + 2 * Math.sqrt(2)));
-        mPaint.setTextSize(mBitmapEdge / 2);
+        mTextPaint.setTextSize(mBitmapEdge / 2);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        int position;
-        int firstPosition = (int) Math.round(mScrollPosition - 2);
-        int lastPosition = (int) Math.round(mScrollPosition + 2);
-        double distanceFromCentre;
+        canvas.drawColor(Color.CYAN);
+        int value;
+        int firstPosition = (int) Math.round(mScrollPosition - 1);
+        int lastPosition = (int) Math.round(mScrollPosition + 1);
 
-        for (int i = firstPosition; i <= lastPosition; i += mIncrement) {
-            distanceFromCentre = mScrollPosition - i;
+        for (int position = firstPosition; position <= lastPosition; position++) {
 
-            Bitmap b = getBitmap(i % mCount);
-            setMatrix(i);
+            value = position % mCount;
+            if (value < 0) {
+                value += mCount;
+            }
+            value *= mIncrement;
+
+            Bitmap b = getBitmap(value);
+            setMatrix(position);
             canvas.drawBitmap(b, mMatrix, null);
         }
     }
 
 
-    private Bitmap getBitmap(int position) {
+    private Bitmap getBitmap(int value) {
 
+        Random r = new Random();
         Bitmap b = Bitmap.createBitmap(mBitmapEdge, mBitmapEdge, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
-        c.drawText(String.valueOf(mMin + (position * mIncrement)), mBitmapEdge / 2, mBitmapEdge / 2, mPaint);
+        c.drawColor(Color.rgb(r.nextInt(256), r.nextInt(256), r.nextInt(256)));
+        float textHeight = mTextPaint.getTextSize();
+        c.drawText(String.valueOf(value), mBitmapEdge / 2, mBitmapEdge / 2 + textHeight / 2, mTextPaint);
         return b;
     }
 
@@ -104,8 +112,8 @@ public class CustomNumberPicker extends View {
 
         RectF rect = getChildDimensions();
 
-        float rotation = (float) ((mScrollPosition - position) * Math.PI / 4);
-        int radius = mHeight / 2;
+        float rotation = (float) (mScrollPosition - position) * 45;
+        int radius = (int) (mBitmapEdge * (1 + Math.sqrt(2)) / 2);
         mCamera.save();
         mCamera.translate(0, 0, radius);
         mCamera.rotateX(rotation);
