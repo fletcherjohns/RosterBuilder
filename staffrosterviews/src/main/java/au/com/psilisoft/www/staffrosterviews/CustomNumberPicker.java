@@ -10,6 +10,9 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.Random;
@@ -27,12 +30,17 @@ public class CustomNumberPicker extends View {
 
     private int mWidth;
     private int mHeight;
-    private int mBitmapEdge;
+    private int mBitmapWidth;
+    private int mBitmapHeight;
+    private float mRadius;
+    private float mApothem;
 
     private Paint mTextPaint;
     private Paint mBitmapPaint;
     private Camera mCamera;
     private Matrix mMatrix;
+
+    private GestureDetector mGestureDetector;
 
 
     public CustomNumberPicker(Context context, AttributeSet attrs) {
@@ -49,6 +57,7 @@ public class CustomNumberPicker extends View {
             a.recycle();
         }
         mCount = (mMax - mMin) / mIncrement;
+        mGestureDetector = new GestureDetector(context, new GestureDetectorListener());
         init();
     }
 
@@ -69,42 +78,56 @@ public class CustomNumberPicker extends View {
 
         mWidth = r - l;
         mHeight = b - t;
-        mBitmapEdge = (int) (mHeight / Math.sqrt(4 + 2 * Math.sqrt(2)));
-        mTextPaint.setTextSize(mBitmapEdge / 2);
+        mBitmapHeight = (int) (mHeight / Math.sqrt(4 + 2 * Math.sqrt(2)) * 1.8);
+        mBitmapWidth = (int) (mWidth * .8);
+        mRadius = (float) (mBitmapHeight / (2. * Math.sin(Math.PI / 8.)));
+        mApothem = (float) (mRadius * Math.cos(Math.PI / 8.));
+
+        Log.v("password", "radius = " + mRadius + ", apothem = " + mApothem);
+        mTextPaint.setTextSize(mBitmapHeight / 2);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        canvas.drawColor(Color.CYAN);
-        int value;
-        int firstPosition = (int) Math.round(mScrollPosition - 1);
-        int lastPosition = (int) Math.round(mScrollPosition + 1);
+        int centrePosition = (int) Math.round(mScrollPosition);
 
-        for (int position = firstPosition; position <= lastPosition; position++) {
-
-            value = position % mCount;
-            if (value < 0) {
-                value += mCount;
+        for (int i = -2; i <=0; i++) {
+            drawBitmap(canvas, centrePosition + i);
+            if (i != 0) {
+                drawBitmap(canvas, centrePosition - i);
             }
-            value *= mIncrement;
+        }
+    }
 
-            Bitmap b = getBitmap(value);
-            setMatrix(position);
-            canvas.drawBitmap(b, mMatrix, null);
+    private void drawBitmap(Canvas canvas, int position) {
+
+        int value = position % mCount;
+        if (value < 0) {
+            value += mCount;
+        }
+        value *= mIncrement;
+
+        Bitmap b = getBitmap(value);
+        setMatrix(position);
+        RectF rect = new RectF(0, 0, mBitmapWidth, mBitmapHeight);
+        mMatrix.mapRect(rect);
+        Log.v("password", "left: " + rect.left + ", top: " + rect.top + ", right: " + rect.right + ", bottom: " + rect.bottom);
+        if (rect.height() > 0) {
+            canvas.drawBitmap(b, mMatrix, mBitmapPaint);
         }
     }
 
 
+
     private Bitmap getBitmap(int value) {
 
-        Random r = new Random();
-        Bitmap b = Bitmap.createBitmap(mBitmapEdge, mBitmapEdge, Bitmap.Config.ARGB_8888);
+        Bitmap b = Bitmap.createBitmap(mBitmapWidth, mBitmapHeight, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
-        c.drawColor(Color.rgb(r.nextInt(256), r.nextInt(256), r.nextInt(256)));
+        c.drawColor(Color.WHITE);
         float textHeight = mTextPaint.getTextSize();
-        c.drawText(String.valueOf(value), mBitmapEdge / 2, mBitmapEdge / 2 + textHeight / 2, mTextPaint);
+        c.drawText(String.valueOf(value), mBitmapWidth / 2, mBitmapHeight / 2 + textHeight / 2, mTextPaint);
         return b;
     }
 
@@ -113,29 +136,49 @@ public class CustomNumberPicker extends View {
         RectF rect = getChildDimensions();
 
         float rotation = (float) (mScrollPosition - position) * 45;
-        int radius = (int) (mBitmapEdge * (1 + Math.sqrt(2)) / 2);
         mCamera.save();
-        mCamera.translate(0, 0, radius);
+        mCamera.translate(0, 0, mApothem);
         mCamera.rotateX(rotation);
-        mCamera.translate(0, 0, -radius);
+        mCamera.translate(0, 0, -mApothem);
         mCamera.getMatrix(mMatrix);
         mCamera.restore();
 
-        mMatrix.preTranslate(-mBitmapEdge / 2, -mBitmapEdge / 2);
-        mMatrix.postTranslate(mBitmapEdge / 2 + rect.left, mBitmapEdge / 2 + rect.top);
+        mMatrix.preTranslate(-mBitmapWidth / 2, -mBitmapHeight / 2);
+        mMatrix.postTranslate(mBitmapWidth / 2 + rect.left, mBitmapHeight / 2 + rect.top);
     }
 
     private RectF getChildDimensions() {
 
         int halfFrameWidth = mWidth / 2;
         int halfFrameHeight = mHeight / 2;
-        int halfChildWidth = mBitmapEdge / 2;
-        int halfChildHeight = mBitmapEdge / 2;
+        int halfChildWidth = mBitmapWidth / 2;
+        int halfChildHeight = mBitmapHeight / 2;
 
         // Centre the view horizontally and vertically
         int left = halfFrameWidth - halfChildWidth;
         int top = halfFrameHeight - halfChildHeight;
 
-        return new RectF(left, top, left + mBitmapEdge, top + mBitmapEdge);
+        return new RectF(left, top, left + mBitmapWidth, top + mBitmapHeight);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mGestureDetector.onTouchEvent(event);
+        return true;
+    }
+
+    private class GestureDetectorListener extends android.view.GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            mScrollPosition += distanceY / mBitmapHeight;
+            mScrollPosition %= mCount;
+            invalidate();
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            return super.onFling(e1, e2, velocityX, velocityY);
+        }
     }
 }
