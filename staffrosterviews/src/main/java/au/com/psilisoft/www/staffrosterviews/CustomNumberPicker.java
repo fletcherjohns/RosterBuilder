@@ -14,19 +14,17 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.HashMap;
+
 /**
  * Created by Fletcher on 14/09/2015.
  */
 public class CustomNumberPicker extends View {
 
-    private static final float FLING_VELOCITY_THRESHOLD = 0.01f;
+    private static final String TAG = "tag";
     private int mMin;
-    private int mMax;
     private int mIncrement;
-    private int mNumberOfSides = 16;
-
-    private int mCount;
-    private double mScrollPosition = 0;
+    private int mNumberOfSides = 12;
 
     private int mWidth;
     private int mHeight;
@@ -40,11 +38,11 @@ public class CustomNumberPicker extends View {
     private Paint mBitmapPaint;
     private Camera mCamera;
     private Matrix mMatrix;
+    private HashMap<Integer, Bitmap> mBitmaps;
 
     private GestureDetector mGestureDetector;
-    private float mScrollVelocity;
-    private SnapThread mSnapThread;
-    private FlingThread mFlingThread;
+    private boolean mGestureActive = false;
+    private ScrollManager mScrollManager;
 
 
     public CustomNumberPicker(Context context, AttributeSet attrs) {
@@ -52,16 +50,28 @@ public class CustomNumberPicker extends View {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs, R.styleable.CustomNumberPicker, 0, 0);
+        final int max;
         try {
             mMin = a.getInteger(R.styleable.CustomNumberPicker_MinimumValue, 0);
-            mMax = a.getInteger(R.styleable.CustomNumberPicker_MaximumValue, 100);
+            max = a.getInteger(R.styleable.CustomNumberPicker_MaximumValue, 100);
             mIncrement = a.getInteger(R.styleable.CustomNumberPicker_IncrementValue, 1);
 
         } finally {
             a.recycle();
         }
-        mCount = (mMax - mMin) / mIncrement;
         mGestureDetector = new GestureDetector(context, new GestureDetectorListener());
+        mScrollManager = new ScrollManager((max - mMin) / mIncrement);
+        mScrollManager.setCallback(new ScrollManager.ScrollCallback() {
+            @Override
+            public void newPosition() {
+                postInvalidate();
+            }
+
+            @Override
+            public void stopped() {
+                mGestureActive = false;
+            }
+        });
         init();
     }
 
@@ -77,6 +87,8 @@ public class CustomNumberPicker extends View {
 
         mCamera = new Camera();
         mMatrix = new Matrix();
+        mBitmaps = new HashMap<>(mNumberOfSides / 2 + 1);
+
     }
 
     @Override
@@ -86,56 +98,70 @@ public class CustomNumberPicker extends View {
         mWidth = w;
         mHeight = h;
 
+        //TODO we need to work out how to fit the numbers in according to the actual values shown
+        //TODO and textSize etc.
+
         float radius = (float) (mHeight);
+        while (true) {
+            setMatrix(Math.round(mScrollManager.getPosition()) - 1);
+            RectF rectF = new RectF(0, 0, mBitmapWidth, mBitmapHeight);
+            mMatrix.mapRect(rectF);
+            if (rectF.top < 0) {
+                radius -= 1;
+            } else {
+                break;
+            }
+        }
+
         mApothem = (float) (radius * Math.cos(Math.PI / mNumberOfSides));
 
-        mBitmapHeight = (int) (radius * 2 * Math.sin(Math.PI / mNumberOfSides));
+        mBitmapHeight = (int) (radius * 2 * Math.sin(Math.PI / mNumberOfSides)) + 1;
         mBitmapWidth = (int) (mWidth * .8);
 
-        mTextPaint.setTextSize(mBitmapHeight / 2);
+        mTextPaint.setTextSize(mBitmapWidth / 1.2f);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        int centrePosition = (int) Math.round(mScrollPosition);
+        int centrePosition = Math.round(mScrollManager.getPosition());
 
-        if (mScrollVelocity != 0) {
-            for (int i = -(mNumberOfSides / 4); i <= 0; i++) {
-
+        if (mGestureActive) {
+            for (int i = -(mNumberOfSides / 4); i < 0; i++) {
                 drawBitmap(canvas, centrePosition + i);
-                if (i != 0) {
-                    drawBitmap(canvas, centrePosition - i);
-                }
+                drawBitmap(canvas, centrePosition - i);
             }
-        } else {
-            drawBitmap(canvas, centrePosition);
         }
+        drawBitmap(canvas, centrePosition);
+
     }
 
     private void drawBitmap(Canvas canvas, int position) {
 
-        int value = position % mCount;
-        if (value < 0) {
-            value += mCount;
+        position %= mScrollManager.getCount();
+        if (position < 0) {
+            position += mScrollManager.getCount();
         }
-        value = mMin + value * mIncrement;
+        int value = mMin + position * mIncrement;
 
-        Bitmap b = getBitmap(value);
+        Bitmap b = mBitmaps.get(value);
+        if (b == null) {
+            b = getBitmap(value);
+            mBitmaps.put(value, b);
+        }
         if (setMatrix(position)) {
             canvas.drawBitmap(b, mMatrix, mBitmapPaint);
         }
 
     }
 
-
     private Bitmap getBitmap(int value) {
 
         Bitmap b = Bitmap.createBitmap(mBitmapWidth, mBitmapHeight, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
         float textHeight = mTextPaint.getTextSize();
-        c.drawText(String.valueOf(value), mBitmapWidth / 2, mBitmapHeight / 2 + textHeight / 2, mTextPaint);
+        c.drawText(String.valueOf(value), mBitmapWidth / 2, (int) (mBitmapHeight / 2. + textHeight / 2.), mTextPaint);
         return b;
     }
 
@@ -143,10 +169,7 @@ public class CustomNumberPicker extends View {
 
         RectF rect = getChildDimensions();
 
-        float rotation = (float) ((mScrollPosition - position) * 360 / mNumberOfSides);
-        if (Math.abs(rotation) > 40) {
-            return false;
-        }
+        float rotation = (mScrollManager.getPosition() - position) * 360 / mNumberOfSides;
         mCamera.save();
 
         mCamera.translate(0, 0, mApothem);
@@ -158,7 +181,12 @@ public class CustomNumberPicker extends View {
         mMatrix.preTranslate(-mBitmapWidth / 2, -mBitmapHeight / 2);
         mMatrix.postTranslate(mBitmapWidth / 2 + rect.left, mBitmapHeight / 2 + rect.top);
 
-        return true;
+        float[] points = {
+                0, 0,
+                0, 100,
+        };
+        mMatrix.mapPoints(points);
+        return points[1] < points[3];
     }
 
     private RectF getChildDimensions() {
@@ -177,104 +205,40 @@ public class CustomNumberPicker extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (!mGestureDetector.onTouchEvent(event)) {
-            mSnapThread = new SnapThread((int) Math.round(mScrollPosition));
-            mSnapThread.start();
-            return false;
-        } else {
-            return true;
+
+        mGestureDetector.onTouchEvent(event);
+
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                mScrollManager.start();
+                mGestureActive = true;
+                invalidate();
+                break;
+            case MotionEvent.ACTION_UP:
+                mScrollManager.stop();
+                break;
         }
+        return true;
     }
 
     private class GestureDetectorListener extends android.view.GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDown(MotionEvent e) {
-            try {
-                mFlingThread.interrupt();
-            } catch (Exception ex) {
-                // Thread probably null
-            }
-            try {
-                mSnapThread.interrupt();
-            } catch (Exception ex) {
-                // Thread probably null
-            }
             return true;
         }
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            mScrollPosition += distanceY / mBitmapHeight;
-            mScrollPosition %= mCount;
-            mScrollVelocity = 1;
+            mScrollManager.scroll(distanceY / mBitmapHeight);
             invalidate();
             return true;
         }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            mScrollVelocity = -velocityY / 80000;
-            mFlingThread = new FlingThread();
-            mFlingThread.start();
+            mScrollManager.fling(-velocityY / 30000);
             return true;
         }
 
-    }
-
-    private class FlingThread extends Thread {
-
-        @Override
-        public void run() {
-
-            while (Math.abs(mScrollVelocity) > FLING_VELOCITY_THRESHOLD) {
-                mScrollVelocity *= 0.95f;
-
-                mScrollPosition += mScrollVelocity;
-                mScrollPosition %= mCount;
-                post(new RequestLayoutRunnable());
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    return;
-                }
-            }
-            mSnapThread = new SnapThread((int) Math.round(mScrollPosition));
-            mSnapThread.start();
-        }
-    }
-
-    private class SnapThread extends Thread {
-
-        int mSnapPosition;
-
-        public SnapThread(int snapPosition) {
-            mSnapPosition = snapPosition;
-        }
-
-        @Override
-        public void run() {
-
-            while (Math.abs((mSnapPosition - mScrollPosition)) > 0.001) {
-                mScrollVelocity = (float) ((mSnapPosition - mScrollPosition) / 10);
-                mScrollPosition += mScrollVelocity;
-                post(new RequestLayoutRunnable());
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    return;
-                }
-            }
-            mScrollVelocity = 0;
-            mScrollPosition = mSnapPosition;
-            post(new RequestLayoutRunnable());
-        }
-    }
-
-    private class RequestLayoutRunnable implements Runnable {
-
-        @Override
-        public void run() {
-            invalidate();
-        }
     }
 }
