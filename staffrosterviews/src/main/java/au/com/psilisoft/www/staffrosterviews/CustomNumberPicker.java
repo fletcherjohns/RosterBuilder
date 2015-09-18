@@ -151,8 +151,8 @@ public class CustomNumberPicker extends View {
                 drawBitmap(canvas, centrePosition - i);
             }
         } else {
-            drawBitmap(canvas, UP_ARROW);
-            drawBitmap(canvas, DOWN_ARROW);
+            drawUpArrow(canvas);
+            drawDownArrow(canvas);
         }
         drawBitmap(canvas, centrePosition);
 
@@ -160,38 +160,32 @@ public class CustomNumberPicker extends View {
 
     private void drawBitmap(Canvas canvas, int position) {
 
-        if (mGestureActive) {
-            position %= mScrollManager.getCount();
-            if (position < 0) {
-                position += mScrollManager.getCount();
-            }
+        position %= mScrollManager.getCount();
+        if (position < 0) {
+            position += mScrollManager.getCount();
         }
+
         int value = mMin + position * mIncrement;
 
-        Bitmap b;
-
-
-        if (value >= 0) {
-            b = mBitmaps.get(value);
-        } else {
-            b = mBitmaps.get(position);
-        }
+        Bitmap b = mBitmaps.get(value);
         if (b == null) {
-            if (value >= 0) {
-                b = getBitmap(value);
-                mBitmaps.put(value, b);
-            } else {
-                b = getBitmap(position);
-                mBitmaps.put(position, b);
-            }
+            b = getBitmap(value);
+            mBitmaps.put(value, b);
         }
-        if (!mGestureActive) {
-            setMatrix(position == UP_ARROW ? -1 : 1);
-            canvas.drawBitmap(b, mMatrix, mBitmapPaint);
-        } else if (setMatrix(position)) {
+        if (setMatrix(position)) {
             canvas.drawBitmap(b, mMatrix, mBitmapPaint);
         }
 
+    }
+
+    public void drawUpArrow(Canvas canvas) {
+        setMatrix(Math.round(mScrollManager.getPosition()) - 1);
+        canvas.drawBitmap(getBitmap(UP_ARROW), mMatrix, mArrowPaint);
+    }
+
+    public void drawDownArrow(Canvas canvas) {
+        setMatrix(Math.round(mScrollManager.getPosition()) + 1);
+        canvas.drawBitmap(getBitmap(DOWN_ARROW), mMatrix, mArrowPaint);
     }
 
     private Bitmap getBitmap(int value) {
@@ -203,10 +197,10 @@ public class CustomNumberPicker extends View {
 
                 Path path = new Path();
                 path.setFillType(Path.FillType.EVEN_ODD);
-                path.moveTo(0,mBitmapHeight);
-                path.lineTo(mBitmapWidth/2,0);
-                path.lineTo(mBitmapWidth,mBitmapHeight);
-                path.lineTo(0,mBitmapHeight);
+                path.moveTo(mBitmapWidth * 2 / 5, mBitmapHeight);
+                path.lineTo(mBitmapWidth / 2, mBitmapHeight * 2 / 3);
+                path.lineTo(mBitmapWidth * 3 / 5, mBitmapHeight);
+                path.lineTo(mBitmapWidth * 2 / 5, mBitmapHeight);
                 path.close();
 
                 c.drawPath(path, mArrowPaint);
@@ -215,10 +209,10 @@ public class CustomNumberPicker extends View {
 
                 path = new Path();
                 path.setFillType(Path.FillType.EVEN_ODD);
-                path.moveTo(0,0);
-                path.lineTo(mBitmapWidth/2,mBitmapHeight);
-                path.lineTo(mBitmapWidth,0);
-                path.lineTo(0,0);
+                path.moveTo(mBitmapWidth * 2 / 5, 0);
+                path.lineTo(mBitmapWidth / 2, mBitmapHeight / 3);
+                path.lineTo(mBitmapWidth * 3 / 5, 0);
+                path.lineTo(mBitmapWidth * 2 / 5, 0);
                 path.close();
 
                 c.drawPath(path, mArrowPaint);

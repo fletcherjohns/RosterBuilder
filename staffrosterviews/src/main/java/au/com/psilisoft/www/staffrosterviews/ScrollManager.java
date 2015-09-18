@@ -54,6 +54,7 @@ class ScrollManager {
 
     public void interrupt() {
 
+        mVelocity = 0;
         if (mThread != null) mThread.interrupt();
     }
 
