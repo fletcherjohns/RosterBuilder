@@ -52,15 +52,17 @@ class ScrollManager {
         mVelocity = velocity;
     }
 
-    public void start() {
+    public void interrupt() {
 
         if (mThread != null) mThread.interrupt();
     }
 
     public void scroll(float distance) {
-        mPosition += distance;
-        mPosition %= mCount;
-        mCallback.newPosition();
+        if (mLoop || (mPosition + distance >= 0 && mPosition + distance <= mCount - 1)) {
+            mPosition += distance;
+            mPosition %= mCount;
+            mCallback.newPosition();
+        }
     }
 
     public void fling(float velocity) {
@@ -69,7 +71,7 @@ class ScrollManager {
         mThread.start();
     }
 
-    public void stop() {
+    public void ensureThreadIsAlive() {
 
         if (mThread == null || !mThread.isAlive()) {
             mThread = new FlingThread();
@@ -85,9 +87,7 @@ class ScrollManager {
             while (Math.abs(mVelocity) > FLING_VELOCITY_THRESHOLD) {
                 mVelocity *= 0.99f;
 
-                mPosition += mVelocity;
-                mPosition %= mCount;
-                mCallback.newPosition();
+                scroll(mVelocity);
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -97,8 +97,7 @@ class ScrollManager {
             int snapPosition = Math.round(mPosition);
             while (Math.abs((snapPosition - mPosition)) > 0.001) {
                 mVelocity = (snapPosition - mPosition) / 10;
-                mPosition += mVelocity;
-                mCallback.newPosition();
+                scroll(mVelocity);
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {

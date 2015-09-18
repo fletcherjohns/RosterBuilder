@@ -8,8 +8,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -22,6 +24,8 @@ import java.util.HashMap;
 public class CustomNumberPicker extends View {
 
     private static final String TAG = "tag";
+    private static final int UP_ARROW = -1;
+    private static final int DOWN_ARROW = -2;
     private int mMin;
     private int mIncrement;
     private int mNumberOfSides = 12;
@@ -36,6 +40,8 @@ public class CustomNumberPicker extends View {
 
     private Paint mTextPaint;
     private Paint mBitmapPaint;
+    private Paint mArrowPaint;
+
     private Camera mCamera;
     private Matrix mMatrix;
     private HashMap<Integer, Bitmap> mBitmaps;
@@ -60,7 +66,7 @@ public class CustomNumberPicker extends View {
             a.recycle();
         }
         mGestureDetector = new GestureDetector(context, new GestureDetectorListener());
-        mScrollManager = new ScrollManager((max - mMin) / mIncrement);
+        mScrollManager = new ScrollManager((max - mMin) / mIncrement, true);
         mScrollManager.setCallback(new ScrollManager.ScrollCallback() {
             @Override
             public void newPosition() {
@@ -85,6 +91,11 @@ public class CustomNumberPicker extends View {
         mBitmapPaint.setFilterBitmap(true);
         mBitmapPaint.setAntiAlias(true);
 
+        mArrowPaint = new Paint();
+        mArrowPaint.setColor(Color.BLACK);
+        mArrowPaint.setStyle(Paint.Style.FILL);
+        mArrowPaint.setAntiAlias(true);
+
         mCamera = new Camera();
         mMatrix = new Matrix();
         mBitmaps = new HashMap<>(mNumberOfSides / 2 + 1);
@@ -101,24 +112,31 @@ public class CustomNumberPicker extends View {
         //TODO we need to work out how to fit the numbers in according to the actual values shown
         //TODO and textSize etc.
 
-        float radius = (float) (mHeight);
-        while (true) {
-            setMatrix(Math.round(mScrollManager.getPosition()) - 1);
-            RectF rectF = new RectF(0, 0, mBitmapWidth, mBitmapHeight);
-            mMatrix.mapRect(rectF);
-            if (rectF.top < 0) {
-                radius -= 1;
-            } else {
-                break;
-            }
-        }
+        float[] points = {
+                0f, 0f,
+                0f, (float) h
+        };
+        Matrix m = new Matrix();
+        Camera c = new Camera();
+        c.save();
+        c.translate(0, 0, -(h / 2));
+        c.getMatrix(m);
+        c.restore();
+        m.preTranslate(0, -(h / 2));
+        m.postTranslate(0, h / 2);
+        Log.v(TAG, String.valueOf(points[3] - points[1]));
+        m.mapPoints(points);
+
+
+        float radius = Math.abs(points[3] - points[1]) / 2;
+        Log.v(TAG, String.valueOf(points[3] - points[1]));
 
         mApothem = (float) (radius * Math.cos(Math.PI / mNumberOfSides));
 
         mBitmapHeight = (int) (radius * 2 * Math.sin(Math.PI / mNumberOfSides)) + 1;
         mBitmapWidth = (int) (mWidth * .8);
 
-        mTextPaint.setTextSize(mBitmapWidth / 1.2f);
+        mTextPaint.setTextSize(Math.min(mBitmapHeight / 1.2f, mBitmapWidth / 1.2f));
     }
 
     @Override
@@ -132,6 +150,9 @@ public class CustomNumberPicker extends View {
                 drawBitmap(canvas, centrePosition + i);
                 drawBitmap(canvas, centrePosition - i);
             }
+        } else {
+            drawBitmap(canvas, UP_ARROW);
+            drawBitmap(canvas, DOWN_ARROW);
         }
         drawBitmap(canvas, centrePosition);
 
@@ -139,18 +160,35 @@ public class CustomNumberPicker extends View {
 
     private void drawBitmap(Canvas canvas, int position) {
 
-        position %= mScrollManager.getCount();
-        if (position < 0) {
-            position += mScrollManager.getCount();
+        if (mGestureActive) {
+            position %= mScrollManager.getCount();
+            if (position < 0) {
+                position += mScrollManager.getCount();
+            }
         }
         int value = mMin + position * mIncrement;
 
-        Bitmap b = mBitmaps.get(value);
-        if (b == null) {
-            b = getBitmap(value);
-            mBitmaps.put(value, b);
+        Bitmap b;
+
+
+        if (value >= 0) {
+            b = mBitmaps.get(value);
+        } else {
+            b = mBitmaps.get(position);
         }
-        if (setMatrix(position)) {
+        if (b == null) {
+            if (value >= 0) {
+                b = getBitmap(value);
+                mBitmaps.put(value, b);
+            } else {
+                b = getBitmap(position);
+                mBitmaps.put(position, b);
+            }
+        }
+        if (!mGestureActive) {
+            setMatrix(position == UP_ARROW ? -1 : 1);
+            canvas.drawBitmap(b, mMatrix, mBitmapPaint);
+        } else if (setMatrix(position)) {
             canvas.drawBitmap(b, mMatrix, mBitmapPaint);
         }
 
@@ -160,8 +198,35 @@ public class CustomNumberPicker extends View {
 
         Bitmap b = Bitmap.createBitmap(mBitmapWidth, mBitmapHeight, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
-        float textHeight = mTextPaint.getTextSize();
-        c.drawText(String.valueOf(value), mBitmapWidth / 2, (int) (mBitmapHeight / 2. + textHeight / 2.), mTextPaint);
+        switch (value) {
+            case UP_ARROW:
+
+                Path path = new Path();
+                path.setFillType(Path.FillType.EVEN_ODD);
+                path.moveTo(0,mBitmapHeight);
+                path.lineTo(mBitmapWidth/2,0);
+                path.lineTo(mBitmapWidth,mBitmapHeight);
+                path.lineTo(0,mBitmapHeight);
+                path.close();
+
+                c.drawPath(path, mArrowPaint);
+                break;
+            case DOWN_ARROW:
+
+                path = new Path();
+                path.setFillType(Path.FillType.EVEN_ODD);
+                path.moveTo(0,0);
+                path.lineTo(mBitmapWidth/2,mBitmapHeight);
+                path.lineTo(mBitmapWidth,0);
+                path.lineTo(0,0);
+                path.close();
+
+                c.drawPath(path, mArrowPaint);
+                break;
+            default:
+                float textHeight = mTextPaint.getTextSize();
+                c.drawText(String.valueOf(value), mBitmapWidth / 2, (int) (mBitmapHeight / 2. + textHeight / 2.), mTextPaint);
+        }
         return b;
     }
 
@@ -210,12 +275,12 @@ public class CustomNumberPicker extends View {
 
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                mScrollManager.start();
+                mScrollManager.interrupt();
                 mGestureActive = true;
                 invalidate();
                 break;
             case MotionEvent.ACTION_UP:
-                mScrollManager.stop();
+                mScrollManager.ensureThreadIsAlive();
                 break;
         }
         return true;
