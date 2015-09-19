@@ -118,9 +118,8 @@ public class ScrollManager {
                 }
             }
             mVelocity = 0;
-            mPosition = snapPosition;
+            scroll(snapPosition - mPosition);
             if (mCallback != null) {
-                mCallback.newPosition();
                 mCallback.stopped();
             }
         }
