@@ -1,10 +1,14 @@
 package au.com.psilisoft.www.staffrosterviews;
 
+import android.util.Log;
+
 /**
  * Created by Fletcher on 17/09/2015.
  */
-class ScrollManager {
+public class ScrollManager {
 
+    public static final int LOOP_FORWARD = 1;
+    public static final int LOOP_BACKWARDS = 2;
     private static final float FLING_VELOCITY_THRESHOLD = 0.01f;
 
     private int mCount;
@@ -32,10 +36,6 @@ class ScrollManager {
         return mCount;
     }
 
-    public void setCount(int count) {
-        mCount = count;
-    }
-
     public float getPosition() {
         return mPosition;
     }
@@ -61,8 +61,20 @@ class ScrollManager {
     public void scroll(float distance) {
         if (mLoop || (mPosition + distance >= 0 && mPosition + distance <= mCount - 1)) {
             mPosition += distance;
+
+            if (mCallback != null) {
+                if (mPosition >= mCount) {
+                    mCallback.looped(LOOP_FORWARD);
+                } else if (mPosition < 0) {
+                    mCallback.looped(LOOP_BACKWARDS);
+                }
+            }
+
             mPosition %= mCount;
-            mCallback.newPosition();
+            if (mPosition < 0) {
+                mPosition += mCount;
+            }
+            if (mCallback != null) mCallback.newPosition();
         }
     }
 
@@ -86,7 +98,7 @@ class ScrollManager {
         public void run() {
 
             while (Math.abs(mVelocity) > FLING_VELOCITY_THRESHOLD) {
-                mVelocity *= 0.99f;
+                mVelocity *= 0.97f;
 
                 scroll(mVelocity);
                 try {
@@ -107,13 +119,19 @@ class ScrollManager {
             }
             mVelocity = 0;
             mPosition = snapPosition;
-            mCallback.newPosition();
-            mCallback.stopped();
+            if (mCallback != null) {
+                mCallback.newPosition();
+                mCallback.stopped();
+            }
         }
     }
 
+    /**
+     * IMPORTANTE MI AMIGO!!!! These callbacks may be running in a background thread.
+     */
     interface ScrollCallback {
         void newPosition();
         void stopped();
+        void looped(int direction);
     }
 }

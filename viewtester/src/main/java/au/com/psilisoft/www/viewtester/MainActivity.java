@@ -4,6 +4,10 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import au.com.psilisoft.www.staffrosterviews.CustomNumberPicker;
+import au.com.psilisoft.www.staffrosterviews.ScrollManager;
 
 /**
  *
@@ -11,10 +15,33 @@ import android.view.MenuItem;
 
 public class MainActivity extends Activity {
 
+    private CustomNumberPicker mPicker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mPicker = (CustomNumberPicker) findViewById(R.id.picker);
+        if (savedInstanceState != null) {
+            mPicker.setScrollPosition(savedInstanceState.getFloat("position"));
+        }
+        mPicker.setOnNumberChangeListener(new CustomNumberPicker.OnNumberChangeListener() {
+            @Override
+            public void numberSelected(int number) {
+                toast("You have selected " + number);
+            }
+
+            @Override
+            public void looped(int direction) {
+                toast("looped " + (direction == ScrollManager.LOOP_FORWARD ? "Forwards" : "Backwards"));
+            }
+        });
+    }
+
+    private void toast(String text) {
+
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -37,5 +64,12 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putFloat("position", mPicker.getScrollPosition());
     }
 }
