@@ -187,10 +187,11 @@ public class CustomNumberPicker extends View {
             drawDownArrow(canvas);
             Iterator<Map.Entry<Integer, Bitmap>> i = mBitmaps.entrySet().iterator();
             while (i.hasNext()) {
-                if (!setMatrix(Math.round(i.next().getKey() - mScrollManager.getPosition()))) {
+                if (!setMatrix((int)(i.next().getKey() - mScrollManager.getPosition()))) {
                     i.remove();
                 }
             }
+            Log.v(TAG, "mBitmaps.size() = " + mBitmaps.size());
         }
     }
 
@@ -211,9 +212,11 @@ public class CustomNumberPicker extends View {
                 mBitmaps.put(absPosition, b);
             }
             canvas.drawBitmap(b, mMatrix, mBitmapPaint);
+            Log.v(TAG, "mBitmaps.size() = " + mBitmaps.size());
             return true;
         } else {
             mBitmaps.remove(absPosition);
+            Log.v(TAG, "mBitmaps.size() = " + mBitmaps.size());
             return false;
         }
 
