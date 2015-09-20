@@ -1,16 +1,20 @@
-package au.com.psilisoft.www.staffrosterviews;
+package au.com.psilisoft.www.staffrosterviews.scrollmanager;
 
-import android.util.Log;
+import android.view.View;
 
 /**
  * Created by Fletcher on 17/09/2015.
+ * <p/>
+ * This class manages the scroll position and velocity of an {@link android.widget.AdapterView} or
+ * any custom scrollable view. Please note that
  */
-public class ScrollManager {
+public class ScrollManager implements ScrollCallback {
 
     public static final int LOOP_FORWARD = 1;
     public static final int LOOP_BACKWARDS = 2;
     private static final float FLING_VELOCITY_THRESHOLD = 0.01f;
 
+    private View mView;
     private int mCount;
     private float mPosition;
     private float mVelocity;
@@ -19,13 +23,14 @@ public class ScrollManager {
     private ScrollCallback mCallback;
     private Thread mThread;
 
-    public ScrollManager(int count, boolean loop) {
+    public ScrollManager(View view, int count, boolean loop) {
+        mView = view;
         mCount = count;
         mLoop = loop;
     }
 
-    public ScrollManager(int count) {
-        this(count, false);
+    public ScrollManager(View view, int count) {
+        this(view, count, false);
     }
 
     public void setCallback(ScrollCallback callback) {
@@ -59,23 +64,37 @@ public class ScrollManager {
     }
 
     public void scroll(float distance) {
-        if (mLoop || (mPosition + distance >= 0 && mPosition + distance <= mCount - 1)) {
-            mPosition += distance;
-
-            if (mCallback != null) {
-                if (mPosition >= mCount) {
-                    mCallback.looped(LOOP_FORWARD);
-                } else if (mPosition < 0) {
-                    mCallback.looped(LOOP_BACKWARDS);
-                }
+        if (!mLoop) {
+            if (mPosition + distance < 0) {
+                distance = -mPosition;
+                mVelocity = 0;
             }
-
-            mPosition %= mCount;
-            if (mPosition < 0) {
-                mPosition += mCount;
+            if (mPosition + distance > mCount - 1) {
+                distance = mCount - 1 - mPosition;
+                mVelocity = 0;
             }
-            if (mCallback != null) mCallback.newPosition();
         }
+        mPosition += distance;
+
+        // If mPosition is outside of the range 0 to mCount - 1, send loop callback
+        if (mCallback != null) {
+            if (mPosition < 0 || mPosition >= mCount) {
+                int direction = LOOP_FORWARD;
+                if (mPosition < 0) {
+                    direction = LOOP_BACKWARDS;
+                }
+                looped(direction);
+            }
+        }
+
+        mPosition %= mCount;
+        if (mPosition < 0) {
+            mPosition += mCount;
+        }
+        if (mCallback != null) {
+            newPosition(mPosition);
+        }
+
     }
 
     public void fling(float velocity) {
@@ -90,6 +109,36 @@ public class ScrollManager {
             mThread = new FlingThread();
             mThread.start();
         }
+    }
+
+    @Override
+    public void newPosition(final float position) {
+        mView.post(new Runnable() {
+            @Override
+            public void run() {
+                mCallback.newPosition(position);
+            }
+        });
+    }
+
+    @Override
+    public void stopped(final int position) {
+        mView.post(new Runnable() {
+            @Override
+            public void run() {
+                mCallback.stopped(position);
+            }
+        });
+    }
+
+    @Override
+    public void looped(final int direction) {
+        mView.post(new Runnable() {
+            @Override
+            public void run() {
+                mCallback.looped(direction);
+            }
+        });
     }
 
     private class FlingThread extends Thread {
@@ -120,17 +169,9 @@ public class ScrollManager {
             mVelocity = 0;
             scroll(snapPosition - mPosition);
             if (mCallback != null) {
-                mCallback.stopped();
+                stopped((int) mPosition);
             }
         }
     }
 
-    /**
-     * IMPORTANTE MI AMIGO!!!! These callbacks may be running in a background thread.
-     */
-    interface ScrollCallback {
-        void newPosition();
-        void stopped();
-        void looped(int direction);
-    }
 }

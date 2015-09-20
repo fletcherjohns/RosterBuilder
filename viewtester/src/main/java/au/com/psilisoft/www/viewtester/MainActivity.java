@@ -6,8 +6,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import au.com.psilisoft.www.staffrosterviews.CustomNumberPicker;
-import au.com.psilisoft.www.staffrosterviews.ScrollManager;
+import au.com.psilisoft.www.staffrosterviews.NumberRollerPicker;
+import au.com.psilisoft.www.staffrosterviews.StringRollerPicker;
+import au.com.psilisoft.www.staffrosterviews.scrollmanager.ScrollManager;
 
 /**
  *
@@ -15,28 +16,13 @@ import au.com.psilisoft.www.staffrosterviews.ScrollManager;
 
 public class MainActivity extends Activity {
 
-    private CustomNumberPicker mPicker;
+    private StringRollerPicker mPicker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mPicker = (CustomNumberPicker) findViewById(R.id.picker);
-        if (savedInstanceState != null) {
-            mPicker.setScrollPosition(savedInstanceState.getFloat("position"));
-        }
-        mPicker.setOnNumberChangeListener(new CustomNumberPicker.OnNumberChangeListener() {
-            @Override
-            public void numberSelected(int number) {
-                toast("You have selected " + number);
-            }
-
-            @Override
-            public void looped(int direction) {
-                toast("looped " + (direction == ScrollManager.LOOP_FORWARD ? "Forwards" : "Backwards"));
-            }
-        });
     }
 
     private void toast(String text) {

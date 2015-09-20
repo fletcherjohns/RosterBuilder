@@ -10,14 +10,12 @@
               android:paddingTop="@dimen/activity_vertical_margin"
               tools:context=".MainActivity">
 
-    <au.com.psilisoft.www.staffrosterviews.CustomNumberPicker
+    <au.com.psilisoft.www.staffrosterviews.StringRollerPicker
         android:id="@+id/picker"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        custom:IncrementValue="1"
-        custom:MaximumValue="60"
-        custom:MinimumValue="0"/>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
 
+        custom:Loop="true"/>
 
 
 </LinearLayout>
