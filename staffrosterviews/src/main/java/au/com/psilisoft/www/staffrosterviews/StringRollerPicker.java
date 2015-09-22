@@ -28,16 +28,6 @@ public class StringRollerPicker extends RollerPicker {
         mList = new ArrayList<>();
         mList.add("One");
         mList.add("Two");
-        mList.add("Three");
-        mList.add("Forty Seven");
-        mList.add("Some");
-        mList.add("Thing");
-        mList.add("Else");
-        mList.add("To");
-        mList.add("Add");
-        mList.add("To");
-        mList.add("The");
-        mList.add("List");
         mTextPaint = new Paint();
         mTextPaint.setColor(Color.BLACK);
         mTextPaint.setTextAlign(Paint.Align.CENTER);

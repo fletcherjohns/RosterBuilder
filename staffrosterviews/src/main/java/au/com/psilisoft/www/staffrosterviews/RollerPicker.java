@@ -9,16 +9,14 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 
 import au.com.psilisoft.www.staffrosterviews.scrollmanager.ScrollCallback;
 import au.com.psilisoft.www.staffrosterviews.scrollmanager.ScrollManager;
@@ -28,12 +26,14 @@ import au.com.psilisoft.www.staffrosterviews.scrollmanager.ScrollManager;
  */
 public abstract class RollerPicker extends View implements ScrollCallback {
 
+    private static final int SIDES_PER_POSITION = 40;
     private static final int SIZE_SMALL = 1;
     private static final int SIZE_MEDIUM = 2;
     private static final int SIZE_LARGE = 3;
     private static final String TAG = "tag";
     private static final int UP_ARROW = -1;
     private static final int DOWN_ARROW = -2;
+
     private boolean mLoop;
     private int mSize = SIZE_MEDIUM;
     private int mNumberOfSides;
@@ -46,14 +46,13 @@ public abstract class RollerPicker extends View implements ScrollCallback {
 
     private Camera mCamera;
     private Matrix mMatrix;
-    private HashMap<Integer, Bitmap> mBitmaps;
+    private HashMap<Integer, List<Bitmap>> mBitmaps;
     private Paint mBitmapPaint;
     private Paint mArrowPaint;
 
     private GestureDetector mGestureDetector;
     private boolean mGestureActive = false;
     private ScrollManager mScrollManager;
-
 
     public RollerPicker(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -69,6 +68,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
     public boolean isGestureActive() {
         return mGestureActive;
     }
+
     public void setGestureActive(boolean gestureActive) {
         mGestureActive = gestureActive;
     }
@@ -103,8 +103,6 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         mScrollManager.setCallback(this);
     }
 
-
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -112,24 +110,56 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         mWidth = w;
         mHeight = h;
         mBitmapHeight = (int) (mHeight * .5);
+        // ensure mBitmapHeight is divisible by SIDES_PER_POSITION
+        // how much are we cutting off with the planned integer division?
+        int remainder = mBitmapHeight % SIDES_PER_POSITION;
+        mBitmapHeight /= SIDES_PER_POSITION;
+        // if we're cutting off more than 10 pixels, round up
+        if (remainder > 10) mBitmapHeight++;
+        mBitmapHeight *= SIDES_PER_POSITION;
         mBitmapWidth = mWidth - 50;
 
+        /*
+        NOTE REGARDING REGULAR POLYGONS:
+        radius = distance from the centre of the polygon to any vertex
+        apothem = distance from the centre of the polygon to the centre of any side
+        (The more sides a regular polygon has, the closer the radius and the apothem will be.
+
+        THE PICKER WHEEL:
+        The wheel is a regular polygon (only visible sides are drawn). It has a number of positions
+        and a number of sides per position.
+        It needs to fill the view vertically, and will be positioned at a distance of the
+        apothem behind the screen.
+
+        TO CALCULATE THE SIZE OF THE WHEEL:
+        The apothem is not yet known so approximate with half of the view height.
+        Translate a length of 1000 a distance of half of the view height along the z-axis, in to
+        the screen. This will scale the length.
+        The inverse scale ratio (original length / scaled length) multiplied by the height of
+        the view gives the required diameter of the wheel to fill the view.
+        */
+
+        // points represent a vertical length of 1000 passing through the origin at its midpoint
         float[] points = {
-                0f, 0f,
-                0f, (float) h
+                0f, -500f,
+                0f, 500f
         };
         Matrix m = new Matrix();
         Camera c = new Camera();
         c.save();
+        // translate half height along z-axis
         c.translate(0, 0, h / 2);
         c.getMatrix(m);
         c.restore();
-        m.preTranslate(0, -(h / 2));
-        m.postTranslate(0, h / 2);
+        // apply the matrix to the points
         m.mapPoints(points);
+        // calculate inverseScaleRatio
+        float inverseScaleRatio = 1000f / Math.abs(points[3] - points[1]);
+        // multiply by height / 2 to get the radius
+        float radius = h * inverseScaleRatio / 2;
 
-        float radius = h * h / Math.abs(points[3] - points[1]) / 2;
-        mNumberOfSides = (int) (Math.PI / Math.asin(mBitmapHeight / (2 * radius)));
+        mNumberOfSides = (int) Math.round(Math.PI / Math.asin(mBitmapHeight / SIDES_PER_POSITION / (2 * radius)));
+        radius = (float) (mBitmapHeight / SIDES_PER_POSITION / (2 * Math.sin(Math.PI / mNumberOfSides)));
         mApothem = (float) (radius * Math.cos(Math.PI / mNumberOfSides));
 
     }
@@ -143,7 +173,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
                 width = mSize * 100;
                 break;
             case MeasureSpec.AT_MOST:
-                width = Math.min(width, mSize * 100);
+                width = Math.min(width, mSize * 150);
                 break;
             case MeasureSpec.EXACTLY:
                 break;
@@ -169,19 +199,21 @@ public abstract class RollerPicker extends View implements ScrollCallback {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        drawBitmap(canvas, 0);
+        int centrePosition = Math.round(mScrollManager.getPosition());
+        drawBitmap(canvas, centrePosition);
 
         if (mGestureActive) {
 
-            int position = Math.round(mScrollManager.getPosition());
+            int position;
             int count = mScrollManager.getCount();
             boolean exit = false;
 
             for (int i = 1; ; ) {
-                boolean aboveLowerLimit = i + position >= 0;
-                boolean belowUpperLimit = i + position <= count - 1;
+                position = centrePosition + i;
+                boolean aboveLowerLimit = position >= 0;
+                boolean belowUpperLimit = position <= count - 1;
                 if ((mLoop || (aboveLowerLimit && belowUpperLimit))
-                        && drawBitmap(canvas, i)) {
+                        && drawBitmap(canvas, position)) {
                     exit = false;
                 } else {
                     if (exit) break;
@@ -193,62 +225,77 @@ public abstract class RollerPicker extends View implements ScrollCallback {
                     i = -i + 1;
                 }
             }
-
         } else {
-            if (mLoop || mScrollManager.getPosition() > 0) drawUpArrow(canvas);
-            if (mLoop || mScrollManager.getPosition() < mScrollManager.getCount() - 1) drawDownArrow(canvas);
-            Iterator<Map.Entry<Integer, Bitmap>> i = mBitmaps.entrySet().iterator();
-            while (i.hasNext()) {
-                if (!setMatrix((int) (i.next().getKey() - mScrollManager.getPosition()))) {
-                    i.remove();
-                }
+            if (mLoop || mScrollManager.getPosition() > 0) {
+                drawUpArrow(canvas);
+            }
+            if (mLoop || mScrollManager.getPosition() < mScrollManager.getCount() - 1) {
+                drawDownArrow(canvas);
             }
         }
     }
 
     private boolean drawBitmap(Canvas canvas, int position) {
-
-        Log.v(TAG, "drawBitmap(canvas, " + position + ")");
-        int centrePosition = Math.round(mScrollManager.getPosition());
-        int absPosition = (centrePosition + position) % mScrollManager.getCount();
-        if (absPosition < 0) {
-            absPosition += mScrollManager.getCount();
+        // position is the position in the list or sequence of objects.
+        // At this point, position may be "out of bounds", but absPosition (the visible position
+        // on the wheel) should be calculated before correcting the range:
+        float absPosition = position - mScrollManager.getPosition();
+        // Now put position within the correct range if needed.
+        position %= mScrollManager.getCount();
+        if (position < 0) {
+            position += mScrollManager.getCount();
         }
 
-        if (setMatrix(position)) {
+        float rollback = (SIDES_PER_POSITION / 2f) - .5f;
+        float rotation = -absPosition * 360 / mNumberOfSides * SIDES_PER_POSITION;
+        float prevRotation = -(absPosition - mScrollManager.getCount()) * 360 / mNumberOfSides * SIDES_PER_POSITION;
+        float nextRotation = -(absPosition + mScrollManager.getCount()) * 360 / mNumberOfSides * SIDES_PER_POSITION;
 
-            Bitmap b = mBitmaps.get(absPosition);
-            if (b == null) {
-                Log.v("lll", "loading bitmap");
-                b = getBitmap(absPosition);
-                mBitmaps.put(absPosition, b);
-            } else {
-                Log.v("lll", "already had bitmap");
+        if ((rotation > 0 && setMatrix(mBitmapWidth, Math.round((float) mBitmapHeight / SIDES_PER_POSITION), rotation - (rollback * 360 / mNumberOfSides)))
+                || (rotation <= 0 && setMatrix(mBitmapWidth, Math.round((float) mBitmapHeight / SIDES_PER_POSITION), rotation + (rollback * 360 / mNumberOfSides)))) {
+
+            List<Bitmap> slices = mBitmaps.get(position);
+            if (slices == null) {
+                mBitmaps.put(position, new ArrayList<Bitmap>(SIDES_PER_POSITION));
+                new BitmapsThread(position).start();
+                return true;
             }
-            canvas.drawBitmap(b, mMatrix, mBitmapPaint);
-            Log.v(TAG, "mBitmaps.size() = " + mBitmaps.size());
-            return true;
-        } else {
-            mBitmaps.remove(absPosition);
-            Log.v(TAG, "mBitmaps.size() = " + mBitmaps.size());
-            return false;
-        }
+            if (slices.size() == 0) {
+                return true;
+            }
 
+            float subRotation = rotation + (rollback * 360f / mNumberOfSides);
+            for (int i = 0; i < slices.size(); i++) {
+                if (setMatrix(mBitmapWidth, Math.round((float) mBitmapHeight / SIDES_PER_POSITION), subRotation)) {
+                    /*int tint = (int) (0xFF * Math.abs((subRotation + 45) / 180) + 0x33);
+                    int mul = Color.rgb(tint, tint, tint);
+                    int add = 0xFF333333;
+                    mBitmapPaint.setColorFilter(new LightingColorFilter(mul, add));*/
+                    canvas.drawBitmap(slices.get(i), mMatrix, mBitmapPaint);
+                }
+                subRotation = subRotation - (360f / mNumberOfSides);
+            }
+            return true;
+        } else if (prevRotation > 90 && nextRotation < -90) {
+            mBitmaps.remove(position);
+        }
+        return false;
     }
 
     public void drawUpArrow(Canvas canvas) {
-        setMatrix(-1);
+        setMatrix(mBitmapWidth, mBitmapHeight, 360f / mNumberOfSides * SIDES_PER_POSITION);
         canvas.drawBitmap(getArrow(UP_ARROW), mMatrix, mArrowPaint);
     }
 
     public void drawDownArrow(Canvas canvas) {
-        setMatrix(1);
+        setMatrix(mBitmapWidth, mBitmapHeight, -360f / mNumberOfSides * SIDES_PER_POSITION);
         canvas.drawBitmap(getArrow(DOWN_ARROW), mMatrix, mArrowPaint);
     }
 
     private Bitmap getArrow(int direction) {
         Bitmap b = Bitmap.createBitmap(getBitmapWidth(), getBitmapHeight(), Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
+
         switch (direction) {
             case UP_ARROW:
 
@@ -280,10 +327,8 @@ public abstract class RollerPicker extends View implements ScrollCallback {
 
     protected abstract Bitmap getBitmap(int position);
 
-    private boolean setMatrix(int position) {
+    private boolean setMatrix(int bitmapWidth, int bitmapHeight, float rotation) {
 
-        float offset = mScrollManager.getPosition() - Math.round(mScrollManager.getPosition());
-        float rotation = -(position - offset) * 360 / mNumberOfSides;
         mCamera.save();
 
         mCamera.translate(0, 0, mApothem);
@@ -292,7 +337,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         mCamera.getMatrix(mMatrix);
         mCamera.restore();
 
-        mMatrix.preTranslate(-mBitmapWidth / 2, -mBitmapHeight / 2);
+        mMatrix.preTranslate(-bitmapWidth / 2, -bitmapHeight / 2);
         mMatrix.postTranslate(mWidth / 2, mHeight / 2);
 
         float[] points = {
@@ -355,6 +400,26 @@ public abstract class RollerPicker extends View implements ScrollCallback {
             return true;
         }
 
+    }
+
+    private class BitmapsThread extends Thread {
+
+        private int mPosition;
+
+        public BitmapsThread(int position) {
+            mPosition = position;
+        }
+
+        public void run() {
+            List<Bitmap> slices = mBitmaps.get(mPosition);
+            Bitmap b = getBitmap(mPosition);
+            for (int i = 0; i < SIDES_PER_POSITION; i++) {
+                slices.add(Bitmap.createBitmap(b, 0, Math.round((float) i * mBitmapHeight / SIDES_PER_POSITION),
+                        mBitmapWidth, Math.round((float) mBitmapHeight / SIDES_PER_POSITION)));
+            }
+            mBitmaps.put(mPosition, slices);
+            postInvalidate();
+        }
     }
 
 }

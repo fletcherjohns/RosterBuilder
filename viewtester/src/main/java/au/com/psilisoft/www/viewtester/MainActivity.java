@@ -16,7 +16,6 @@ import au.com.psilisoft.www.staffrosterviews.scrollmanager.ScrollManager;
 
 public class MainActivity extends Activity {
 
-    private StringRollerPicker mPicker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +55,5 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putFloat("position", mPicker.getScrollPosition());
     }
 }
