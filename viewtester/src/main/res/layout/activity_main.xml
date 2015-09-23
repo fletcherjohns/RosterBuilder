@@ -10,15 +10,11 @@
               android:paddingTop="@dimen/activity_vertical_margin"
               tools:context=".MainActivity">
 
-    <au.com.psilisoft.www.staffrosterviews.NumberRollerPicker
+    <au.com.psilisoft.www.staffrosterviews.scrollmanager.TimeRollerPicker
         android:id="@+id/picker"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        custom:MinimumValue="0"
-        custom:MaximumValue="60"
-        custom:IncrementValue="5"
-        custom:Loop="true"
-        custom:Size="Small"/>
+        custom:MinuteIncrementValue="5"/>
 
 
 </LinearLayout>

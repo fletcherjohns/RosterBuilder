@@ -14,6 +14,12 @@
         <attr name="MinimumValue" format="integer" />
         <attr name="MaximumValue" format="integer" />
         <attr name="IncrementValue" format="integer" />
+        <attr name="NumberFormat" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="TimeRollerPicker">
+        <attr name="MinuteIncrementValue" format="integer" />
+        <attr name="HourIncrementValue" format="integer" />
     </declare-styleable>
 
 </resources>

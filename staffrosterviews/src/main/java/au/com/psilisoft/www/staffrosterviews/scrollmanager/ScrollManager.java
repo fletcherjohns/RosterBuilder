@@ -11,7 +11,7 @@ import android.view.View;
 public class ScrollManager implements ScrollCallback {
 
     public static final int LOOP_FORWARD = 1;
-    public static final int LOOP_BACKWARDS = 2;
+    public static final int LOOP_BACKWARDS = -1;
     private static final float FLING_VELOCITY_THRESHOLD = 0.01f;
 
     private View mView;
@@ -59,8 +59,8 @@ public class ScrollManager implements ScrollCallback {
 
     public void interrupt() {
 
-        mVelocity = 0;
         if (mThread != null) mThread.interrupt();
+        mVelocity = 0;
     }
 
     public void scroll(float distance) {
@@ -141,6 +141,11 @@ public class ScrollManager implements ScrollCallback {
         });
     }
 
+    public void setCount(int count) {
+        mCount = count;
+        ensureThreadIsAlive();
+    }
+
     private class FlingThread extends Thread {
 
         @Override
@@ -168,7 +173,7 @@ public class ScrollManager implements ScrollCallback {
             }
             mVelocity = 0;
             scroll(snapPosition - mPosition);
-            if (mCallback != null) {
+            if (mCallback != null && !interrupted()) {
                 stopped((int) mPosition);
             }
         }

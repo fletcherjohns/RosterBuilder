@@ -6,10 +6,14 @@ import android.graphics.Bitmap;
 import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LightingColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -26,13 +30,15 @@ import au.com.psilisoft.www.staffrosterviews.scrollmanager.ScrollManager;
  */
 public abstract class RollerPicker extends View implements ScrollCallback {
 
-    private static final int SIDES_PER_POSITION = 40;
+    private static final int SIDES_PER_POSITION = 1;
     private static final int SIZE_SMALL = 1;
     private static final int SIZE_MEDIUM = 2;
     private static final int SIZE_LARGE = 3;
     private static final String TAG = "tag";
     private static final int UP_ARROW = -1;
     private static final int DOWN_ARROW = -2;
+    private static final String SUPER_INSTANCE_STATE = "super_instance_state";
+    private static final String STATE_POSITION = "state_position";
 
     private boolean mLoop;
     private int mSize = SIZE_MEDIUM;
@@ -57,6 +63,22 @@ public abstract class RollerPicker extends View implements ScrollCallback {
     public RollerPicker(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Bundle savedInstanceState = new Bundle();
+        savedInstanceState.putParcelable(SUPER_INSTANCE_STATE, super.onSaveInstanceState());
+        savedInstanceState.putFloat(STATE_POSITION, mScrollManager.getPosition());
+        return savedInstanceState;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        Bundle savedInstanceState = (Bundle) state;
+        state = savedInstanceState.getParcelable(SUPER_INSTANCE_STATE);
+        mScrollManager.setPosition(savedInstanceState.getFloat(STATE_POSITION));
+        super.onRestoreInstanceState(state);
     }
 
     protected abstract int getCount();
@@ -103,6 +125,10 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         mScrollManager.setCallback(this);
     }
 
+    public void setCount(int count) {
+        mScrollManager.setCount(count);
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -117,7 +143,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         // if we're cutting off more than 10 pixels, round up
         if (remainder > 10) mBitmapHeight++;
         mBitmapHeight *= SIDES_PER_POSITION;
-        mBitmapWidth = mWidth - 50;
+        mBitmapWidth = mWidth - 20;
 
         /*
         NOTE REGARDING REGULAR POLYGONS:
@@ -157,10 +183,12 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         float inverseScaleRatio = 1000f / Math.abs(points[3] - points[1]);
         // multiply by height / 2 to get the radius
         float radius = h * inverseScaleRatio / 2;
+        Log.v(TAG, "radius = " + radius);
 
         mNumberOfSides = (int) Math.round(Math.PI / Math.asin(mBitmapHeight / SIDES_PER_POSITION / (2 * radius)));
         radius = (float) (mBitmapHeight / SIDES_PER_POSITION / (2 * Math.sin(Math.PI / mNumberOfSides)));
-        mApothem = (float) (radius * Math.cos(Math.PI / mNumberOfSides));
+        Log.v(TAG, "radius = " + radius);
+        mApothem = (float) (radius * Math.cos(Math.PI / mNumberOfSides) - 1);
 
     }
 
@@ -260,20 +288,17 @@ public abstract class RollerPicker extends View implements ScrollCallback {
                 new BitmapsThread(position).start();
                 return true;
             }
-            if (slices.size() == 0) {
-                return true;
-            }
-
             float subRotation = rotation + (rollback * 360f / mNumberOfSides);
             for (int i = 0; i < slices.size(); i++) {
                 if (setMatrix(mBitmapWidth, Math.round((float) mBitmapHeight / SIDES_PER_POSITION), subRotation)) {
-                    /*int tint = (int) (0xFF * Math.abs((subRotation + 45) / 180) + 0x33);
-                    int mul = Color.rgb(tint, tint, tint);
-                    int add = 0xFF333333;
-                    mBitmapPaint.setColorFilter(new LightingColorFilter(mul, add));*/
+                    int tint = Math.max(0, (int) (0xFF * ((subRotation)) / 120));
+                    int mul = Color.rgb(1, 1, 1);
+                    int add = Color.rgb(tint, tint, tint);
+                    mBitmapPaint.setColorFilter(new LightingColorFilter(mul, add));
+
                     canvas.drawBitmap(slices.get(i), mMatrix, mBitmapPaint);
                 }
-                subRotation = subRotation - (360f / mNumberOfSides);
+                subRotation = subRotation - 360f / mNumberOfSides;
             }
             return true;
         } else if (prevRotation > 90 && nextRotation < -90) {
@@ -362,6 +387,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
 
     public void setScrollPosition(float position) {
         mScrollManager.setPosition(position);
+        invalidate();
     }
 
     @Override
@@ -378,6 +404,8 @@ public abstract class RollerPicker extends View implements ScrollCallback {
             case MotionEvent.ACTION_UP:
                 mScrollManager.ensureThreadIsAlive();
                 break;
+            default:
+                mGestureActive = true;
         }
         return true;
     }
@@ -411,10 +439,11 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         }
 
         public void run() {
-            List<Bitmap> slices = mBitmaps.get(mPosition);
+            List<Bitmap> slices;
+            while ((slices = mBitmaps.get(mPosition)) == null) ;
             Bitmap b = getBitmap(mPosition);
             for (int i = 0; i < SIDES_PER_POSITION; i++) {
-                slices.add(Bitmap.createBitmap(b, 0, Math.round((float) i * mBitmapHeight / SIDES_PER_POSITION),
+                slices.add(Bitmap.createBitmap(b, 0, i * mBitmapHeight / SIDES_PER_POSITION,
                         mBitmapWidth, Math.round((float) mBitmapHeight / SIDES_PER_POSITION)));
             }
             mBitmaps.put(mPosition, slices);
