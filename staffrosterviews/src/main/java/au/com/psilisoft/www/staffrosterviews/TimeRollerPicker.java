@@ -1,4 +1,4 @@
-package au.com.psilisoft.www.staffrosterviews.scrollmanager;
+package au.com.psilisoft.www.staffrosterviews;
 
 import android.content.Context;
 import android.content.res.TypedArray;

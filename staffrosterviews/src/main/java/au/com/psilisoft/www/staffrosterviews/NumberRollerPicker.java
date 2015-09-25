@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -25,25 +27,10 @@ public class NumberRollerPicker extends RollerPicker {
     private Paint mTextPaint;
     private OnNumberChangeListener mCallback;
 
+
     public NumberRollerPicker(Context context, AttributeSet attrs) {
         super(context, attrs);
-    }
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-
-
-        mTextPaint.setTextSize(getBitmapHeight());
-        String s;
-        Rect bounds = new Rect();
-        for (int i = mMin; i < mMax; i += mIncrement) {
-            s = mFormat.format(i);
-            mTextPaint.getTextBounds(s, 0, s.length(), bounds);
-            if (bounds.width() > getBitmapWidth()) {
-                mTextPaint.setTextSize(mTextPaint.getTextSize() * (getBitmapWidth() - 40) / bounds.width());
-            }
-        }
     }
 
     @Override
@@ -62,12 +49,50 @@ public class NumberRollerPicker extends RollerPicker {
         mTextPaint = new Paint();
         mTextPaint.setColor(Color.rgb(80, 80, 80));
         mTextPaint.setTextAlign(Paint.Align.CENTER);
+
+        // Very hacky way of getting android:textSize attribute
+        TextView textView = new TextView(context, attrs);
+        mTextPaint.setTextSize(textView.getTextSize());
+
         if (mFormatString != null) {
             mFormat = new DecimalFormat(mFormatString);
         } else {
             mFormat = new DecimalFormat();
         }
         super.init(context, attrs);
+    }
+
+    public int getMin() {
+        return mMin;
+    }
+
+    public void setMin(int min) {
+        mMin = min;
+        setCount((mMax - mMin) / mIncrement);
+        invalidate();
+    }
+
+    public int getMax() {
+        return mMax;
+    }
+
+    public void setMax(int max) {
+        mMax = max;
+        setCount((mMax - mMin) / mIncrement);
+        invalidate();
+    }
+
+
+    public int getIncrement() {
+        return mIncrement;
+    }
+
+    public String getFormatString() {
+        return mFormatString;
+    }
+
+    public void setFormatString(String formatString) {
+        mFormatString = formatString;
     }
 
     public void setOnNumberChangeListener(OnNumberChangeListener callback) {
@@ -84,6 +109,22 @@ public class NumberRollerPicker extends RollerPicker {
     }
 
     @Override
+    protected Rect getBitmapSize() {
+
+        String s;
+        Rect rect = new Rect();
+        int w = 1;
+        int h = 1;
+        for (int i = mMin; i < mMax; i += mIncrement) {
+            s = mFormat.format(i);
+            mTextPaint.getTextBounds(s, 0, s.length(), rect);
+            w = (int) Math.max(w, rect.width() * 1.4f);
+            h = (int) Math.max(h, rect.height() * 1.4f);
+        }
+        return new Rect(0, 0, w, h);
+    }
+
+    @Override
     protected Bitmap getBitmap(int position) {
 
         int value = mMin + (position * mIncrement);
@@ -91,6 +132,7 @@ public class NumberRollerPicker extends RollerPicker {
         Canvas c = new Canvas(b);
 
         String s = mFormat.format(value);
+
         Rect bounds = new Rect();
         mTextPaint.getTextBounds(s, 0, s.length(), bounds);
         c.drawText(s, getBitmapWidth() / 2, getBitmapHeight() / 2 + bounds.height() / 2, mTextPaint);
@@ -98,8 +140,15 @@ public class NumberRollerPicker extends RollerPicker {
         return b;
     }
 
+
+
     public float getTextSize() {
         return mTextPaint.getTextSize();
+    }
+
+    public void setTextSize(float textSize) {
+        mTextPaint.setTextSize(textSize);
+        requestLayout();
     }
 
     @Override
@@ -129,6 +178,7 @@ public class NumberRollerPicker extends RollerPicker {
     public void setIncrement(int increment) {
         mIncrement = increment;
         setCount((mMax - mMin) / mIncrement);
+        invalidate();
     }
 
     public interface OnNumberChangeListener {

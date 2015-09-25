@@ -146,6 +146,14 @@ public class ScrollManager implements ScrollCallback {
         ensureThreadIsAlive();
     }
 
+    public boolean isLoop() {
+        return mLoop;
+    }
+
+    public void setLoop(boolean loop) {
+        mLoop = loop;
+    }
+
     private class FlingThread extends Thread {
 
         @Override

@@ -15,8 +15,7 @@
         app:Loop="true"
         app:MaximumValue="24"
         app:MinimumValue="0"
-        app:NumberFormat="00"
-        app:Size="Large"/>
+        app:NumberFormat="00"/>
 
     <au.com.psilisoft.www.staffrosterviews.NumberRollerPicker
         android:id="@+id/minute_roller_picker"
@@ -27,7 +26,6 @@
         app:Loop="true"
         app:MaximumValue="60"
         app:MinimumValue="0"
-        app:NumberFormat="00"
-        app:Size="Large"/>
+        app:NumberFormat="00"/>
 
 </merge>

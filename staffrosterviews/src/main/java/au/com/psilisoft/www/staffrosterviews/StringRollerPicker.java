@@ -41,6 +41,11 @@ public class StringRollerPicker extends RollerPicker {
     }
 
     @Override
+    protected Rect getBitmapSize() {
+        return null;
+    }
+
+    @Override
     protected Bitmap getBitmap(int position) {
         Bitmap b = Bitmap.createBitmap(getBitmapWidth(), getBitmapHeight(), Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);

@@ -2,11 +2,6 @@
 <resources>
 
     <declare-styleable name="RollerPicker">
-        <attr name="Size" format="enum">
-            <enum name="Small" value="1"/>
-            <enum name="Medium" value="2"/>
-            <enum name="Large" value="3"/>
-        </attr>
         <attr name="Loop" format="boolean"/>
     </declare-styleable>
 
@@ -14,12 +9,17 @@
         <attr name="MinimumValue" format="integer" />
         <attr name="MaximumValue" format="integer" />
         <attr name="IncrementValue" format="integer" />
+        <attr name="TextSize" format="dimension"/>
         <attr name="NumberFormat" format="string" />
     </declare-styleable>
 
     <declare-styleable name="TimeRollerPicker">
         <attr name="MinuteIncrementValue" format="integer" />
         <attr name="HourIncrementValue" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="DetailRow">
+        <attr name="Label" format="string"/>
     </declare-styleable>
 
 </resources>
