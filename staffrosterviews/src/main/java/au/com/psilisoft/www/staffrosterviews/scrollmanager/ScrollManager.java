@@ -65,16 +65,16 @@ public class ScrollManager implements ScrollCallback {
 
     public void scroll(float distance) {
         if (!mLoop) {
-            if (mPosition + distance < 0) {
-                distance = -mPosition;
+            if (mPosition - distance < 0) {
+                distance = mPosition;
                 mVelocity = 0;
             }
-            if (mPosition + distance > mCount - 1) {
-                distance = mCount - 1 - mPosition;
+            if (mPosition - distance > mCount - 1) {
+                distance = -(mCount - 1 - mPosition);
                 mVelocity = 0;
             }
         }
-        mPosition += distance;
+        mPosition -= distance;
 
         // If mPosition is outside of the range 0 to mCount - 1, send loop callback
         if (mCallback != null) {
@@ -162,7 +162,7 @@ public class ScrollManager implements ScrollCallback {
             while (Math.abs(mVelocity) > FLING_VELOCITY_THRESHOLD) {
                 mVelocity *= 0.97f;
 
-                scroll(mVelocity);
+                scroll(-mVelocity);
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -172,7 +172,7 @@ public class ScrollManager implements ScrollCallback {
             int snapPosition = Math.round(mPosition);
             while (Math.abs((snapPosition - mPosition)) > 0.001) {
                 mVelocity = (snapPosition - mPosition) / 10;
-                scroll(mVelocity);
+                scroll(-mVelocity);
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {

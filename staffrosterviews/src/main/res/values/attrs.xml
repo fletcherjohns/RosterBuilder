@@ -19,7 +19,14 @@
     </declare-styleable>
 
     <declare-styleable name="DetailRow">
-        <attr name="Label" format="string"/>
+        <attr name="Align" format="enum">
+            <enum name="left" value="0"/>
+            <enum name="right" value="1"/>
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="CustomTheme">
+        <attr name="DetailRowStyle" format="reference"/>
     </declare-styleable>
 
 </resources>

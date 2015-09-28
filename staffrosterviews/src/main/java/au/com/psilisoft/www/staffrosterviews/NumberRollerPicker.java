@@ -49,6 +49,7 @@ public class NumberRollerPicker extends RollerPicker {
         mTextPaint = new Paint();
         mTextPaint.setColor(Color.rgb(80, 80, 80));
         mTextPaint.setTextAlign(Paint.Align.CENTER);
+        mTextPaint.setAntiAlias(true);
 
         // Very hacky way of getting android:textSize attribute
         TextView textView = new TextView(context, attrs);
@@ -165,6 +166,14 @@ public class NumberRollerPicker extends RollerPicker {
                     (int) ((mMin + getScrollPosition())
                             * mIncrement));
         }
+    }
+
+    public int getValue() {
+        return (int) (mMin + getScrollPosition() * mIncrement);
+    }
+
+    public void setValue(Integer value) {
+        setScrollPosition(mMin + value / mIncrement);
     }
 
     @Override

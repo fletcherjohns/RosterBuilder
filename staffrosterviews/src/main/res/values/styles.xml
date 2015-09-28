@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="PsiliTheme" parent="android:Theme.Light">
+        <item name="DetailRowStyle">@style/Widget.DetailRow.Standard</item>
+        <item name="android:editTextStyle">@style/Widget.EditText.Standard</item>
+    </style>
+
+    <style name="Widget.DetailRow.Standard" parent="">
+        <item name="android:background">#FFDDEEFF</item>
+        <item name="android:layout_margin">5dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="Widget.EditText.Standard" parent="android:Widget.EditText">
+    </style>
+
+</resources>

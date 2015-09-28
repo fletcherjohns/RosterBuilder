@@ -82,7 +82,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         mBitmapPaint.setAntiAlias(true);
 
         mArrowPaint = new Paint();
-        mArrowPaint.setColor(Color.BLACK);
+        mArrowPaint.setColor(Color.rgb(0x88, 0x99, 0xAA));
         mArrowPaint.setStyle(Paint.Style.FILL);
         mArrowPaint.setAntiAlias(true);
 
@@ -92,17 +92,17 @@ public abstract class RollerPicker extends View implements ScrollCallback {
 
     @Override
     protected Parcelable onSaveInstanceState() {
-        Bundle savedInstanceState = new Bundle();
-        savedInstanceState.putParcelable(SUPER_INSTANCE_STATE, super.onSaveInstanceState());
-        savedInstanceState.putFloat(STATE_POSITION, mScrollManager.getPosition());
-        return savedInstanceState;
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(SUPER_INSTANCE_STATE, super.onSaveInstanceState());
+        bundle.putFloat(STATE_POSITION, mScrollManager.getPosition());
+        return bundle;
     }
 
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
-        Bundle savedInstanceState = (Bundle) state;
-        state = savedInstanceState.getParcelable(SUPER_INSTANCE_STATE);
-        mScrollManager.setPosition(savedInstanceState.getFloat(STATE_POSITION));
+        Bundle bundle = (Bundle) state;
+        state = bundle.getParcelable(SUPER_INSTANCE_STATE);
+        mScrollManager.setPosition(bundle.getFloat(STATE_POSITION));
         super.onRestoreInstanceState(state);
     }
 
@@ -136,8 +136,8 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         mWidth = w;
         mHeight = h;
         // The reverse of these are used in onMeasure
-        mBitmapHeight = (int) (mHeight * .5);
-        mBitmapWidth = mWidth - 20;
+        mBitmapHeight = Math.max(1, mHeight / 2);
+        mBitmapWidth = Math.max(1, mWidth - 20);
 
         /*
         NOTE REGARDING REGULAR POLYGONS:
@@ -177,11 +177,9 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         float inverseScaleRatio = 1000f / Math.abs(points[3] - points[1]);
         // multiply by height / 2 to get the radius
         float radius = h * inverseScaleRatio / 2;
-        Log.v(TAG, "radius = " + radius);
 
         mNumberOfSides = (int) Math.round(Math.PI / Math.asin(mBitmapHeight / (2 * radius)));
         radius = (float) (mBitmapHeight / (2 * Math.sin(Math.PI / mNumberOfSides)));
-        Log.v(TAG, "radius = " + radius);
         mApothem = (float) (radius * Math.cos(Math.PI / mNumberOfSides) - 1);
 
     }
@@ -231,7 +229,6 @@ public abstract class RollerPicker extends View implements ScrollCallback {
 
         int centrePosition = Math.round(mScrollManager.getPosition());
         drawBitmap(canvas, centrePosition);
-
         if (mGestureActive) {
 
             int position;
@@ -257,10 +254,10 @@ public abstract class RollerPicker extends View implements ScrollCallback {
             }
         } else {
             if (mLoop || mScrollManager.getPosition() > 0) {
-                drawUpArrow(canvas);
+                drawDownArrow(canvas);
             }
             if (mLoop || mScrollManager.getPosition() < mScrollManager.getCount() - 1) {
-                drawDownArrow(canvas);
+                drawUpArrow(canvas);
             }
         }
     }
@@ -277,9 +274,9 @@ public abstract class RollerPicker extends View implements ScrollCallback {
             position += mScrollManager.getCount();
         }
 
-        float rotation = -absPosition * 360 / mNumberOfSides;
-        float prevRotation = -(absPosition - mScrollManager.getCount()) * 360 / mNumberOfSides;
-        float nextRotation = -(absPosition + mScrollManager.getCount()) * 360 / mNumberOfSides;
+        float rotation = absPosition * 360 / mNumberOfSides;
+        float prevRotation = (absPosition - mScrollManager.getCount()) * 360 / mNumberOfSides;
+        float nextRotation = (absPosition + mScrollManager.getCount()) * 360 / mNumberOfSides;
 
         if (setMatrix(rotation)) {
             Bitmap b = mBitmaps.get(position);
@@ -289,7 +286,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
                 return true;
             }
             int tint = Math.max(0, (int) (0xFF * ((rotation)) / 120));
-            int mul = Color.rgb(1, 1, 1);
+            int mul = Color.rgb(tint, tint, tint);
             int add = Color.rgb(tint, tint, tint);
             mBitmapPaint.setColorFilter(new LightingColorFilter(mul, add));
 
@@ -315,15 +312,19 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         Bitmap b = Bitmap.createBitmap(getBitmapWidth(), getBitmapHeight(), Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
 
+        float halfWidth = getBitmapWidth() / 2f;
+        float halfHeight = getBitmapHeight() / 2f;
+        float arrowHeight = (float) Math.sqrt(Math.pow(halfHeight, 2) - Math.pow(halfHeight / 2, 2));
+
         switch (direction) {
             case UP_ARROW:
 
                 Path path = new Path();
                 path.setFillType(Path.FillType.EVEN_ODD);
-                path.moveTo(getBitmapWidth() * 2 / 5, getBitmapHeight());
-                path.lineTo(getBitmapWidth() / 2, getBitmapHeight() * 2 / 3);
-                path.lineTo(getBitmapWidth() * 3 / 5, getBitmapHeight());
-                path.lineTo(getBitmapWidth() * 2 / 5, getBitmapHeight());
+                path.moveTo(halfWidth - (halfHeight / 4f), getBitmapHeight());
+                path.lineTo(halfWidth, arrowHeight);
+                path.lineTo(halfWidth + (halfHeight / 4f), getBitmapHeight());
+                path.lineTo(halfWidth - (halfHeight / 4f), getBitmapHeight());
                 path.close();
 
                 c.drawPath(path, mArrowPaint);
@@ -332,10 +333,10 @@ public abstract class RollerPicker extends View implements ScrollCallback {
 
                 path = new Path();
                 path.setFillType(Path.FillType.EVEN_ODD);
-                path.moveTo(getBitmapWidth() * 2 / 5, 0);
-                path.lineTo(getBitmapWidth() / 2, getBitmapHeight() / 3);
-                path.lineTo(getBitmapWidth() * 3 / 5, 0);
-                path.lineTo(getBitmapWidth() * 2 / 5, 0);
+                path.moveTo(halfWidth - (halfHeight / 4f), 0);
+                path.lineTo(halfWidth, getBitmapHeight() - arrowHeight);
+                path.lineTo(halfWidth + (halfHeight / 4f), 0);
+                path.lineTo(halfWidth - (halfHeight / 4f), 0);
                 path.close();
 
                 c.drawPath(path, mArrowPaint);
@@ -419,7 +420,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            mScrollManager.fling(-velocityY / 30000);
+            mScrollManager.fling(velocityY / 30000);
             return true;
         }
 
