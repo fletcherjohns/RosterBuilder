@@ -3,18 +3,45 @@
 
     <style name="PsiliTheme" parent="android:Theme.Light">
         <item name="DetailRowStyle">@style/Widget.DetailRow.Standard</item>
+        <item name="NumberRollerPickerStyle">@style/Widget.NumberRollerPicker.Standard</item>
+        <item name="ComboNumberRollerPickerDetailRowStyle">@style/Widget.ComboDetailRow.Standard</item>
         <item name="android:editTextStyle">@style/Widget.EditText.Standard</item>
+        <item name="android:textViewStyle">@style/Widget.TextView.Standard</item>
+        <item name="RollerPickerStyle">@style/Widget.RollerPicker.Standard</item>
+        <item name="StaffDetailsStyle">@style/Widget.StaffDetails.Standard</item>
+    </style>
+
+    <style name="Widget.RollerPicker.Standard" parent="">
+        <item name="ArrowColor">@color/accent_medium</item>
+    </style>
+
+    <style name="Widget.NumberRollerPicker.Standard" parent="Widget.RollerPicker.Standard">
+        <item name="android:textColor">@color/accent_medium</item>
     </style>
 
     <style name="Widget.DetailRow.Standard" parent="">
-        <item name="android:background">#FFDDEEFF</item>
-        <item name="android:layout_margin">5dp</item>
         <item name="android:paddingStart">10dp</item>
         <item name="android:paddingEnd">10dp</item>
         <item name="android:gravity">center_vertical</item>
     </style>
 
-    <style name="Widget.EditText.Standard" parent="android:Widget.EditText">
+    <style name="Widget.ComboDetailRow.Standard" parent="">
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+    </style>
+
+    <style name="Widget.EditText.Standard" parent="android:Widget.Holo.EditText">
+        <item name="android:background">@drawable/edit_text</item>
+    </style>
+
+    <style name="Widget.TextView.Standard" parent="android:Widget.Holo.TextView">
+        <item name="android:textColor">@color/dark_text_primary</item>
+    </style>
+
+    <style name="Widget.StaffDetails.Standard" parent="">
+        <item name="android:background">@drawable/panel</item>
     </style>
 
 </resources>

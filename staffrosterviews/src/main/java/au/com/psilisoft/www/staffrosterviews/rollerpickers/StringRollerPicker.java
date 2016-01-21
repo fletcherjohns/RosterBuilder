@@ -1,4 +1,4 @@
-package au.com.psilisoft.www.staffrosterviews;
+package au.com.psilisoft.www.staffrosterviews.rollerpickers;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -24,7 +24,7 @@ public class StringRollerPicker extends RollerPicker {
     }
 
     @Override
-    protected void init(Context context, AttributeSet attrs) {
+    protected void init(Context context, AttributeSet attrs, int defStyleAttrs) {
         mList = new ArrayList<>();
         mList.add("One");
         mList.add("Two");
@@ -32,7 +32,7 @@ public class StringRollerPicker extends RollerPicker {
         mTextPaint.setColor(Color.BLACK);
         mTextPaint.setTextAlign(Paint.Align.CENTER);
         mTextPaint.setAntiAlias(true);
-        super.init(context, attrs);
+        super.init(context, attrs, defStyleAttrs);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class StringRollerPicker extends RollerPicker {
     }
 
     @Override
-    public void newPosition(float position) {
+    public void newPosition(double position) {
         invalidate();
     }
 

@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="au.com.psilisoft.www.rosterbuilder" >
+<manifest
+    package="au.com.psilisoft.www.rosterbuilder"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/PsiliTheme">
         <activity
             android:name=".MenuActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
@@ -21,61 +22,64 @@
             android:name=".provider.RosterProvider"
             android:authorities="au.com.psilisoft.www.rosterbuilder.roster_provider"
             android:enabled="true"
-            android:exported="false" >
+            android:exported="false">
         </provider>
 
         <activity
             android:name=".AbilitiesActivity"
-            android:label="@string/title_activity_abilities" >
+            android:label="@string/title_activity_abilities">
         </activity>
         <activity
             android:name=".StaffListActivity"
-            android:label="@string/title_activity_staff_list" >
+            android:label="@string/title_activity_staff_list">
         </activity>
         <activity
             android:name=".StaffActivity"
-            android:label="@string/title_activity_staff" >
+            android:label="@string/title_activity_staff">
         </activity>
         <activity
             android:name=".ObjectAbilitiesActivity"
-            android:label="@string/title_activity_staff_abilities" >
+            android:label="@string/title_activity_staff_abilities">
         </activity>
         <activity
             android:name=".StaffAvailabilityActivity"
-            android:label="@string/title_activity_staff_availability" >
+            android:label="@string/title_activity_staff_availability">
         </activity>
         <activity
             android:name=".StaffUnavailabilityActivity"
-            android:label="@string/title_activity_staff_unavailability" >
+            android:label="@string/title_activity_staff_unavailability">
         </activity>
         <activity
             android:name=".RosterListActivity"
-            android:label="@string/title_activity_roster_list" >
+            android:label="@string/title_activity_roster_list">
         </activity>
         <activity
             android:name=".CreateRosterActivity"
-            android:label="@string/title_activity_roster" >
+            android:label="@string/title_activity_roster">
         </activity>
         <activity
             android:name=".ShiftListActivity"
-            android:label="@string/title_activity_shift_list" >
+            android:label="@string/title_activity_shift_list">
         </activity>
         <activity
             android:name=".RosterSegmentActivity"
-            android:label="@string/title_activity_shift" >
+            android:label="@string/title_activity_shift">
         </activity>
         <activity
             android:name=".CreateRosterSegmentActivity"
-            android:label="@string/title_activity_create_roster_segment" >
+            android:label="@string/title_activity_create_roster_segment">
         </activity>
         <activity
             android:name=".CreateAvailabilityActivity"
-            android:label="@string/title_activity_create_availability" >
+            android:label="@string/title_activity_create_availability">
         </activity>
         <activity
             android:name=".StaffMasterActivity"
-            android:label="@string/title_activity_staff_master" >
+            android:label="@string/title_activity_staff_master">
         </activity>
+        <activity
+            android:name=".StaffDynamicActivity"
+            android:label="@string/title_activity_staff_dynamic"/>
     </application>
 
 </manifest>

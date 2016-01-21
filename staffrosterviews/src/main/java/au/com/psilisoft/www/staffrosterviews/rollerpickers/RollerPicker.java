@@ -1,4 +1,4 @@
-package au.com.psilisoft.www.staffrosterviews;
+package au.com.psilisoft.www.staffrosterviews.rollerpickers;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
@@ -20,9 +21,8 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.Vector;
 
+import au.com.psilisoft.www.staffrosterviews.R;
 import au.com.psilisoft.www.staffrosterviews.scrollmanager.ScrollCallback;
 import au.com.psilisoft.www.staffrosterviews.scrollmanager.ScrollManager;
 
@@ -56,17 +56,27 @@ public abstract class RollerPicker extends View implements ScrollCallback {
     private boolean mGestureActive = false;
     private ScrollManager mScrollManager;
 
-    public RollerPicker(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init(context, attrs);
+    public RollerPicker(Context context) {
+        this(context, null);
     }
 
-    protected void init(Context context, AttributeSet attrs) {
+    public RollerPicker(Context context, AttributeSet attrs) {
+        this(context, attrs, R.attr.RollerPickerStyle);
+    }
 
+    public RollerPicker(Context context, AttributeSet attrs, int defStyleAttrs) {
+        super(context, attrs, defStyleAttrs);
+        init(context, attrs, defStyleAttrs);
+    }
+
+    protected void init(Context context, AttributeSet attrs, int defStyleAttrs) {
+
+        mArrowPaint = new Paint();
         TypedArray a = context.getTheme().obtainStyledAttributes(
-                attrs, R.styleable.RollerPicker, 0, 0);
+                attrs, R.styleable.RollerPicker, defStyleAttrs, 0);
         try {
             mLoop = a.getBoolean(R.styleable.RollerPicker_Loop, false);
+            mArrowPaint.setColor(a.getColor(R.styleable.RollerPicker_ArrowColor, Color.BLACK));
         } finally {
             a.recycle();
         }
@@ -81,8 +91,6 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         mBitmapPaint.setFilterBitmap(true);
         mBitmapPaint.setAntiAlias(true);
 
-        mArrowPaint = new Paint();
-        mArrowPaint.setColor(Color.rgb(0x88, 0x99, 0xAA));
         mArrowPaint.setStyle(Paint.Style.FILL);
         mArrowPaint.setAntiAlias(true);
 
@@ -94,7 +102,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
     protected Parcelable onSaveInstanceState() {
         Bundle bundle = new Bundle();
         bundle.putParcelable(SUPER_INSTANCE_STATE, super.onSaveInstanceState());
-        bundle.putFloat(STATE_POSITION, mScrollManager.getPosition());
+        bundle.putDouble(STATE_POSITION, mScrollManager.getPosition());
         return bundle;
     }
 
@@ -102,7 +110,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
     protected void onRestoreInstanceState(Parcelable state) {
         Bundle bundle = (Bundle) state;
         state = bundle.getParcelable(SUPER_INSTANCE_STATE);
-        mScrollManager.setPosition(bundle.getFloat(STATE_POSITION));
+        mScrollManager.setPosition(bundle.getDouble(STATE_POSITION));
         super.onRestoreInstanceState(state);
     }
 
@@ -136,7 +144,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         mWidth = w;
         mHeight = h;
         // The reverse of these are used in onMeasure
-        mBitmapHeight = Math.max(1, mHeight / 2);
+        mBitmapHeight = Math.max(1, mHeight / 3);
         mBitmapWidth = Math.max(1, mWidth - 20);
 
         /*
@@ -192,7 +200,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         // to measure and create...
         Rect rect = getBitmapSize();
         int desiredWidth = rect.width() + 20;
-        int desiredHeight = rect.height() * 2;
+        int desiredHeight = rect.height() * 3;
 
         int widthMode = View.MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = View.MeasureSpec.getSize(widthMeasureSpec);
@@ -227,29 +235,28 @@ public abstract class RollerPicker extends View implements ScrollCallback {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        int centrePosition = Math.round(mScrollManager.getPosition());
+        Log.v(TAG, "mBitmaps.size() = " + mBitmaps.size());
+        int centrePosition = (int) Math.round(mScrollManager.getPosition());
         drawBitmap(canvas, centrePosition);
         if (mGestureActive) {
 
-            int position;
             int count = mScrollManager.getCount();
-            boolean exit = false;
+            for (int i = centrePosition + 1; ; i++) {
 
-            for (int i = 1; ; ) {
-                position = centrePosition + i;
-                boolean aboveLowerLimit = position >= 0;
-                boolean belowUpperLimit = position <= count - 1;
-                if ((mLoop || (aboveLowerLimit && belowUpperLimit))
-                        && drawBitmap(canvas, position)) {
-                    exit = false;
-                } else {
-                    if (exit) break;
-                    exit = true;
+                boolean aboveLowerLimit = i >= 0;
+                boolean belowUpperLimit = i <= count - 1;
+                if (!((mLoop || (aboveLowerLimit && belowUpperLimit))
+                        && drawBitmap(canvas, i))) {
+                    break;
                 }
-                if (i > 0) {
-                    i = -i;
-                } else {
-                    i = -i + 1;
+            }
+            for (int i = centrePosition - 1; ; i--) {
+
+                boolean aboveLowerLimit = i >= 0;
+                boolean belowUpperLimit = i <= count - 1;
+                if (!((mLoop || (aboveLowerLimit && belowUpperLimit))
+                        && drawBitmap(canvas, i))) {
+                    break;
                 }
             }
         } else {
@@ -266,7 +273,7 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         // position is the position in the list or sequence of objects.
         // At this point, position may be "out of bounds", but absPosition (the visible position
         // on the wheel) should be calculated before correcting the range:
-        float absPosition = position - mScrollManager.getPosition();
+        float absPosition = (float) (position - mScrollManager.getPosition());
         // Now put position within the correct range if needed.
         if (mScrollManager.getCount() == 0) return false;
         position %= mScrollManager.getCount();
@@ -283,17 +290,27 @@ public abstract class RollerPicker extends View implements ScrollCallback {
             if (b == null) {
                 mBitmaps.put(position, Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8));
                 new BitmapsThread(position).start();
+                Log.v(TAG, "Adding bitmap. mBitmaps.size() = " + mBitmaps.size());
                 return true;
             }
-            int tint = Math.max(0, (int) (0xFF * ((rotation)) / 120));
-            int mul = Color.rgb(tint, tint, tint);
-            int add = Color.rgb(tint, tint, tint);
-            mBitmapPaint.setColorFilter(new LightingColorFilter(mul, add));
+
+            float alphaFactor = (float) Math.max(.15, 1 - (Math.abs(absPosition) / 1.5));
+            float[] colorMatrix = {
+                    1, 0, 0, 0, 0,
+                    0, 1, 0, 0, 0,
+                    0, 0, 1, 0, 0,
+                    0, 0, 0, alphaFactor, 0
+            };
+            mBitmapPaint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
 
             canvas.drawBitmap(b, mMatrix, mBitmapPaint);
             return true;
-        } else if (prevRotation > 90 && nextRotation < -90) {
-            mBitmaps.remove(position);
+        } else if (prevRotation < -90 && nextRotation > 90) {
+            if (mBitmaps.remove(position) == null) {
+                return false;
+            } else {
+                return true;
+            }
         }
         return false;
     }
@@ -377,11 +394,11 @@ public abstract class RollerPicker extends View implements ScrollCallback {
         return mBitmapHeight;
     }
 
-    public float getScrollPosition() {
+    public double getScrollPosition() {
         return mScrollManager.getPosition();
     }
 
-    public void setScrollPosition(float position) {
+    public void setScrollPosition(double position) {
         mScrollManager.setPosition(position);
         invalidate();
     }

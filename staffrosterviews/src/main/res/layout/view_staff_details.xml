@@ -3,30 +3,34 @@
        xmlns:tools="http://schemas.android.com/tools"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
-       android:background="#FFBBBBCC"
        android:orientation="vertical"
-       android:padding="5dp"
        tools:context="au.com.psilisoft.www.rosterbuilder.StaffMainFragment">
 
 
-    <au.com.psilisoft.www.staffrosterviews.EditTextDetailRow
+    <au.com.psilisoft.www.staffrosterviews.detailrows.EditTextDetailRow
         android:id="@+id/edit_staff_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="4dp"
         android:text="Name: "
         android:textSize="30sp"
-        app:Align="left"/>
+        app:Align="fill"/>
 
-    <au.com.psilisoft.www.staffrosterviews.ComboNumberRollerPickerDetailRow
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#AA000000"/>
+
+    <au.com.psilisoft.www.staffrosterviews.detailrows.ComboNumberRollerPickerDetailRow
         android:id="@+id/combo_staff_shifts"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="4dp"
         android:text="Shifts required per week"
         android:textSize="30sp">
 
-        <au.com.psilisoft.www.staffrosterviews.NumberRollerPickerDetailRow
-            android:layout_width="0dp"
-            android:layout_weight="1"
+        <au.com.psilisoft.www.staffrosterviews.detailrows.NumberRollerPickerDetailRow
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Min: "
             android:textSize="30sp"
@@ -35,9 +39,13 @@
             app:MaximumValue="7"
             app:MinimumValue="0"/>
 
-        <au.com.psilisoft.www.staffrosterviews.NumberRollerPickerDetailRow
-            android:layout_width="0dp"
-            android:layout_weight="1"
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#AA000000"/>
+
+        <au.com.psilisoft.www.staffrosterviews.detailrows.NumberRollerPickerDetailRow
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Max: "
             android:textSize="30sp"
@@ -45,18 +53,23 @@
             app:Loop="false"
             app:MaximumValue="7"
             app:MinimumValue="0"/>
-    </au.com.psilisoft.www.staffrosterviews.ComboNumberRollerPickerDetailRow>
+    </au.com.psilisoft.www.staffrosterviews.detailrows.ComboNumberRollerPickerDetailRow>
 
-    <au.com.psilisoft.www.staffrosterviews.ComboNumberRollerPickerDetailRow
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#AA000000"/>
+
+    <au.com.psilisoft.www.staffrosterviews.detailrows.ComboNumberRollerPickerDetailRow
         android:id="@+id/combo_staff_hours"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="4dp"
         android:text="Hours required per week"
         android:textSize="30sp">
 
-        <au.com.psilisoft.www.staffrosterviews.NumberRollerPickerDetailRow
-            android:layout_width="0dp"
-            android:layout_weight="1"
+        <au.com.psilisoft.www.staffrosterviews.detailrows.NumberRollerPickerDetailRow
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Min: "
             android:textSize="30sp"
@@ -65,9 +78,13 @@
             app:MaximumValue="40"
             app:MinimumValue="0"/>
 
-        <au.com.psilisoft.www.staffrosterviews.NumberRollerPickerDetailRow
-            android:layout_width="0dp"
-            android:layout_weight="1"
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#AA000000"/>
+
+        <au.com.psilisoft.www.staffrosterviews.detailrows.NumberRollerPickerDetailRow
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Max: "
             android:textSize="30sp"
@@ -75,12 +92,18 @@
             app:Loop="false"
             app:MaximumValue="40"
             app:MinimumValue="0"/>
-    </au.com.psilisoft.www.staffrosterviews.ComboNumberRollerPickerDetailRow>
+    </au.com.psilisoft.www.staffrosterviews.detailrows.ComboNumberRollerPickerDetailRow>
 
-    <au.com.psilisoft.www.staffrosterviews.NumberRollerPickerDetailRow
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#AA000000"/>
+
+    <au.com.psilisoft.www.staffrosterviews.detailrows.NumberRollerPickerDetailRow
         android:id="@+id/picker_staff_min_consec_days_off"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="4dp"
         android:text="Min consecutive days off per week: "
         android:textSize="30sp"
         app:MinimumValue="0"

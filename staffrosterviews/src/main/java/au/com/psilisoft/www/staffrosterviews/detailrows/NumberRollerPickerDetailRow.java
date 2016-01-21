@@ -1,9 +1,11 @@
-package au.com.psilisoft.www.staffrosterviews;
+package au.com.psilisoft.www.staffrosterviews.detailrows;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.view.View;
+
+import au.com.psilisoft.www.staffrosterviews.rollerpickers.NumberRollerPicker;
 
 /**
  * Created by Fletcher on 23/09/2015.

@@ -6,7 +6,7 @@
        android:layout_gravity="center_vertical"
        android:orientation="horizontal">
 
-    <au.com.psilisoft.www.staffrosterviews.NumberRollerPicker
+    <au.com.psilisoft.www.staffrosterviews.rollerpickers.NumberRollerPicker
         android:id="@+id/hour_roller_picker"
         android:layout_width="0dp"
         android:layout_height="match_parent"
@@ -17,7 +17,7 @@
         app:MinimumValue="0"
         app:NumberFormat="00"/>
 
-    <au.com.psilisoft.www.staffrosterviews.NumberRollerPicker
+    <au.com.psilisoft.www.staffrosterviews.rollerpickers.NumberRollerPicker
         android:id="@+id/minute_roller_picker"
         android:layout_width="0dp"
         android:layout_height="match_parent"

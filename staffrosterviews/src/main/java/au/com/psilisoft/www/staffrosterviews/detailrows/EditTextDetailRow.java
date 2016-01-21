@@ -1,13 +1,11 @@
-package au.com.psilisoft.www.staffrosterviews;
+package au.com.psilisoft.www.staffrosterviews.detailrows;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 
 /**
@@ -26,7 +24,6 @@ public class EditTextDetailRow extends DetailRow<String> {
     protected View getValueWidget(Context context, AttributeSet attrs, int defStyleAttrs) {
         if (mEditText == null) {
             mEditText = new EditText(context, attrs);
-            mEditText.setBackground(null);
             mEditText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {

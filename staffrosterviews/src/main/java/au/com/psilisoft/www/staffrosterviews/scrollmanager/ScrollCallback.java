@@ -5,7 +5,7 @@ package au.com.psilisoft.www.staffrosterviews.scrollmanager;
  */
 public interface ScrollCallback {
 
-    void newPosition(float position);
+    void newPosition(double position);
 
     void stopped(int position);
 

@@ -3,14 +3,29 @@
 
     <declare-styleable name="RollerPicker">
         <attr name="Loop" format="boolean"/>
+        <attr name="ArrowColor" format="color"/>
     </declare-styleable>
 
     <declare-styleable name="NumberRollerPicker">
+        <attr name="Loop"/>
         <attr name="MinimumValue" format="integer" />
         <attr name="MaximumValue" format="integer" />
         <attr name="IncrementValue" format="integer" />
-        <attr name="TextSize" format="dimension"/>
         <attr name="NumberFormat" format="string" />
+        <attr name="ArrowColor"/>
+        <attr name="android:textSize"/>
+        <attr name="android:textColor"/>
+    </declare-styleable>
+
+    <declare-styleable name="NumberRollerPickerDetailRow">
+        <attr name="Loop"/>
+        <attr name="MinimumValue"/>
+        <attr name="MaximumValue"/>
+        <attr name="IncrementValue"/>
+        <attr name="NumberFormat"/>
+        <attr name="android:text"/>
+        <attr name="android:textSize"/>
+        <attr name="android:textColor"/>
     </declare-styleable>
 
     <declare-styleable name="TimeRollerPicker">
@@ -19,14 +34,32 @@
     </declare-styleable>
 
     <declare-styleable name="DetailRow">
+        <attr name="android:text"/>
+        <attr name="android:textSize"/>
+        <attr name="android:textColor"/>
         <attr name="Align" format="enum">
             <enum name="left" value="0"/>
             <enum name="right" value="1"/>
+            <enum name="fill" value="2"/>
         </attr>
     </declare-styleable>
 
+    <declare-styleable name="ComboNumberRollerPickerDetailRow">
+        <attr name="android:textSize"/>
+        <attr name="android:text"/>
+        <attr name="android:textColor"/>
+    </declare-styleable>
+
+
+
+
+
     <declare-styleable name="CustomTheme">
+        <attr name="RollerPickerStyle" format="reference"/>
+        <attr name="NumberRollerPickerStyle" format="reference"/>
         <attr name="DetailRowStyle" format="reference"/>
+        <attr name="ComboNumberRollerPickerDetailRowStyle" format="reference"/>
+        <attr name="StaffDetailsStyle" format="reference"/>
     </declare-styleable>
 
 </resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <au.com.psilisoft.www.staffrosterviews.rollerpickers.NumberRollerPicker
+        android:id="@+id/picker"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/primary_light"
+        android:textSize="200sp"
+        app:MinimumValue="0"
+        app:MaximumValue="6000"
+        app:IncrementValue="1"
+        app:NumberFormat="00"
+        app:Loop="true"/>
+</LinearLayout>

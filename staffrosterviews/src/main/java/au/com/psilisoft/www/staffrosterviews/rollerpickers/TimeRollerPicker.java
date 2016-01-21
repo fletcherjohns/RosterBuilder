@@ -1,8 +1,7 @@
-package au.com.psilisoft.www.staffrosterviews;
+package au.com.psilisoft.www.staffrosterviews.rollerpickers;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,8 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 
-import au.com.psilisoft.www.staffrosterviews.NumberRollerPicker;
 import au.com.psilisoft.www.staffrosterviews.R;
+import au.com.psilisoft.www.staffrosterviews.rollerpickers.NumberRollerPicker;
 
 /**
  * Created by Fletcher on 22/09/2015.

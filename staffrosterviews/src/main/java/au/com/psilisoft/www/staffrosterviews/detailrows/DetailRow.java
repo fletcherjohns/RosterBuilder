@@ -1,4 +1,4 @@
-package au.com.psilisoft.www.staffrosterviews;
+package au.com.psilisoft.www.staffrosterviews.detailrows;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -15,6 +15,8 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import au.com.psilisoft.www.staffrosterviews.R;
+
 /**
  * Created by Fletcher on 23/09/2015.
  *
@@ -28,6 +30,9 @@ public abstract class DetailRow<E> extends LinearLayout {
     private static final String SUPER_INSTANCE_STATE = "saved_instance_state_parcelable";
     private static final String STATE_VIEW_IDS = "state_view_ids";
     private static final String STATE_ORIGINAL_VALUE = "state_original_value";
+    private static final int ALIGN_LEFT = 0;
+    private static final int ALIGN_RIGHT = 1;
+    private static final int ALIGN_FILL = 2;
 
     private TextView mLabel;
     private View mValueWidget;
@@ -43,7 +48,6 @@ public abstract class DetailRow<E> extends LinearLayout {
     private int[] mViewIds;
 
     private DetailRowCallback mCallback;
-    private Paint mPaint;
 
     public DetailRow(Context context) {
         this(context, null);
@@ -56,30 +60,58 @@ public abstract class DetailRow<E> extends LinearLayout {
     public DetailRow(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        boolean alignRight;
+        setGravity(Gravity.CENTER_VERTICAL);
+
+        int align;
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DetailRow, defStyleAttr, 0);
         try {
-            alignRight = a.getInt(R.styleable.DetailRow_Align, 1) == 1;
+            align = a.getInt(R.styleable.DetailRow_Align, 1);
         } finally {
             a.recycle();
         }
 
         LinearLayout.LayoutParams labelParams;
-        labelParams = new LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-        if (alignRight) {
-            labelParams.weight = 1;
-        } else {
-            labelParams.width = LayoutParams.WRAP_CONTENT;
-        }
-
         LinearLayout.LayoutParams valueParams;
-        valueParams = new LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
+        switch (align) {
+            case ALIGN_LEFT:
+                labelParams = new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                valueParams = new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                break;
+            case ALIGN_RIGHT:
+                labelParams = new LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                labelParams.weight = 1;
+                valueParams = new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                break;
+            case ALIGN_FILL:
+                labelParams = new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                valueParams = new LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+                valueParams.weight = 1;
+                break;
+            default:
+                labelParams = new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+                valueParams = new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+        }
         // Create and add both children to the layout
-        mLabel = new TextView(context, attrs, defStyleAttr);
+        mLabel = new TextView(context, attrs);
         mLabel.setLayoutParams(labelParams);
         addView(mLabel);
         // The value widget is created by subclass
@@ -89,12 +121,6 @@ public abstract class DetailRow<E> extends LinearLayout {
         addView(mValueWidget);
         // The value itself must also be retrieved by subclass
         mOriginalValue = getValue();
-
-        mPaint = new Paint();
-        mPaint.setColor(Color.BLACK);
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(1);
-
     }
 
 

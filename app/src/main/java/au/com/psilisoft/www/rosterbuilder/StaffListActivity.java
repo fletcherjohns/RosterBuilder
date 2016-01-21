@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.BaseAdapter;
 import android.widget.SimpleCursorAdapter;
 
@@ -41,6 +42,7 @@ public class StaffListActivity extends SimpleListActivity {
         values.put(Contract.Staff.MAX_SHIFTS, 0);
         values.put(Contract.Staff.MIN_HOURS, 0);
         values.put(Contract.Staff.MAX_HOURS, 0);
+        values.put(Contract.Staff.MIN_CONSEC_DAYS_OFF_PER_WEEK, 0);
         startStaffActivity(Long.valueOf(getContentResolver()
                 .insert(Contract.Staff.CONTENT_URI, values).getLastPathSegment()));
     }
@@ -57,8 +59,9 @@ public class StaffListActivity extends SimpleListActivity {
     }
 
     private void startStaffActivity(long id) {
-        Intent intent = new Intent(this, StaffActivity.class);
-        intent.putExtra(StaffActivity.EXTRA_ID, id);
+        Log.v("tag", "startStaffActivity(" + id + ")");
+        Intent intent = new Intent(this, StaffDynamicActivity.class);
+        intent.putExtra(StaffDynamicActivity.EXTRA_STAFF_ID, id);
         startActivity(intent);
     }
 }

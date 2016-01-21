@@ -1,5 +1,6 @@
 package au.com.psilisoft.www.staffrosterviews.scrollmanager;
 
+import android.util.Log;
 import android.view.View;
 
 /**
@@ -16,8 +17,8 @@ public class ScrollManager implements ScrollCallback {
 
     private View mView;
     private int mCount;
-    private float mPosition;
-    private float mVelocity;
+    private double mPosition;
+    private double mVelocity;
     private boolean mLoop;
 
     private ScrollCallback mCallback;
@@ -41,19 +42,19 @@ public class ScrollManager implements ScrollCallback {
         return mCount;
     }
 
-    public float getPosition() {
+    public double getPosition() {
         return mPosition;
     }
 
-    public void setPosition(float position) {
+    public void setPosition(double position) {
         mPosition = position;
     }
 
-    public float getVelocity() {
+    public double getVelocity() {
         return mVelocity;
     }
 
-    public void setVelocity(float velocity) {
+    public void setVelocity(double velocity) {
         mVelocity = velocity;
     }
 
@@ -63,7 +64,7 @@ public class ScrollManager implements ScrollCallback {
         mVelocity = 0;
     }
 
-    public void scroll(float distance) {
+    public void scroll(double distance) {
         if (!mLoop) {
             if (mPosition - distance < 0) {
                 distance = mPosition;
@@ -112,7 +113,7 @@ public class ScrollManager implements ScrollCallback {
     }
 
     @Override
-    public void newPosition(final float position) {
+    public void newPosition(final double position) {
         mView.post(new Runnable() {
             @Override
             public void run() {
@@ -169,10 +170,14 @@ public class ScrollManager implements ScrollCallback {
                     return;
                 }
             }
-            int snapPosition = Math.round(mPosition);
-            while (Math.abs((snapPosition - mPosition)) > 0.001) {
-                mVelocity = (snapPosition - mPosition) / 10;
+            long snapPosition = Math.round(mPosition);
+
+            while (Math.abs((snapPosition - mPosition)) > 0.005) {
+                Log.v("tag", "mPosition = " + mPosition);
+                Log.v("tag", "snapPosition = " + snapPosition);
+                mVelocity = (snapPosition - mPosition) / 10f;
                 scroll(-mVelocity);
+                Log.v("tag", "scroll(" + -mVelocity + ")");
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
